@@ -289,23 +289,22 @@ function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $op
   $sanitize = !empty($options['sanitize']);
 
   if ($type == 'entity' && !empty($data['entity_type']) && !empty($data['entity']) && !empty($data['token_type'])) {
-    $entity_type = $data['entity_type'];
-    $entity = $data['entity'];
-    list(, , $bundle) = entity_extract_ids($entity_type, $entity);
-    $fields = field_info_instances($entity_type, $bundle);
+    
+    foreach ($tokens as $field_name_suffixed => $token) {
 
-    foreach ($fields as $field_name => $field) {
-
-      // Do not continue if the field is empty.
-      $field_info = field_info_field($field_name);
-      if ($field_info['type'] != 'zoetrope_uuid_field' || empty($entity->{$field_name})) {
-        continue;
-      }
-      $token_name = $field_name.'_preview_url'; 
-
-      if (isset($tokens[$field_name]) && _token_module($data['token_type'], $field_name) == 'zoetrope_viewer') {
-        $original = $tokens[$field_name];
-        $replacements[$original] = zoetrope_viewer_preview_image_url($entity->{$field_name}['und'][0]['value']);
+      if (isset($tokens[$field_name_suffixed]) && _token_module($data['token_type'], $field_name_suffixed) == 'zoetrope_viewer') {
+        
+        $field_name = str_replace('_preview_url', '', $field_name_suffixed);
+        $entity = $data['entity'];
+        $field_info = field_info_field($field_name);
+        if ($field_info['type'] != 'zoetrope_uuid_field' || empty($entity->{$field_name})) {
+          continue;
+        }
+        /*
+         * TODO: How to deal with multiple deltas?
+         */
+        $url = zoetrope_viewer_preview_image_url($entity->{$field_name}['und'][0]['zoetrope_uuid_field']);
+        $replacements[$token] = $url;
       }
     }
   }
@@ -315,13 +314,14 @@ function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $op
 
 // Helper functions
 function _zoetrope_viewer_image_url($uuid,$size=500,$position=0){
+  $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
   $zoe_cdn = variable_get('zoetrope_viewer:cdn', 
               '//d34tuy4jppw3dn.cloudfront.net');
   if(!in_array($size, array(250,500,1000))){
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.', 
               $variables = array('@size' => $size), $severity = WATCHDOG_ERROR);
   }
-  return $zoe_cdn.'/'.$uuid.'/'.$size.'/'.$position.'.jpg';
+  return $mode.$zoe_cdn.'/'.$uuid.'/'.$size.'/'.$position.'.jpg';
 }
 
 function zoetrope_viewer_preview_image_url($uuid){
