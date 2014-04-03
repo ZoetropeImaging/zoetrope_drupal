@@ -79,7 +79,6 @@ function zoetrope_viewer_field_widget_info() {
  */
 function zoetrope_viewer_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   
-  dsm($items);
   $value = isset($items[$delta]['zoetrope_uuid_field']) ? $items[$delta]['zoetrope_uuid_field'] : '';
 
   $widget = $element;
@@ -189,7 +188,7 @@ function zoetrope_viewer_field_formatter_settings_summary($field, $instance, $vi
 
 /* TODO: move this to the download module */
 function zoetrope_viewer_inserts(){
-  $zoe_cdn = variable_get('zoe_reel:cdn', 
+  $zoe_cdn = variable_get('zoetrope_viewer:cdn', 
               '//d34tuy4jppw3dn.cloudfront.net');
 
   $ret = array(
@@ -203,8 +202,8 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
 
   $element = array();
   $settings = $display['settings'];
-  $site_uuid = variable_get('zoe_reel:site_uuid', '');
-  $zoe_cdn = variable_get('zoe_reel:cdn', '//d34tuy4jppw3dn.cloudfront.net');
+  $site_uuid = variable_get('zoetrope_viewer:site_uuid', '');
+  $zoe_cdn = variable_get('zoetrope_viewer:cdn', '//d34tuy4jppw3dn.cloudfront.net');
 
   drupal_add_js($zoe_cdn."/v1/js/zoe-widget.min.js", array(
     'type' => 'external',
@@ -215,8 +214,6 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
   );
   drupal_add_css($zoe_cdn."/v1/css/style.css", 'external');
 
-  dsm($items);
-  dsm($display);
   foreach($items as $delta => $item){
 
     $img_uuid = $item['zoetrope_uuid_field'];
@@ -318,7 +315,7 @@ function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $op
 
 // Helper functions
 function _zoetrope_viewer_image_url($uuid,$size=500,$position=0){
-  $zoe_cdn = variable_get('zoe_reel:cdn', 
+  $zoe_cdn = variable_get('zoetrope_viewer:cdn', 
               '//d34tuy4jppw3dn.cloudfront.net');
   if(!in_array($size, array(250,500,1000))){
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.', 
