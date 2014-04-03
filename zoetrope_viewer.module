@@ -1,0 +1,336 @@
+<?php
+
+/**
+ * Zoetrope Ltd. 2014
+ * 
+ * Adds a UUID field type and field formatters to display zoetrope
+ * engage&trade; images in a drupal site
+ * 
+ * Borrows some UUID implementations from:
+ *  https://drupal.org/sandbox/Mile23/1326218
+*/
+
+/**
+ * Implements hook_field_info().
+ *
+ * Provides the description of the field.
+ */
+function zoetrope_viewer_field_info() {
+  return array(
+    // We name our field as the associative name of the array.
+    'zoetrope_uuid_field' => array(
+      'label' => t('Zoetrope ID'),
+      'description' => t('Add a Zoetrope Engage&trade; image to an entity'),
+      'default_widget' => 'zoetrope_uuid_field_text_widget',
+      'default_formatter' => 'zoetrope_engage_image',
+      'property_type' => 'text'
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  foreach ($items as $delta => $item) {
+    if (!empty($item['zoetrope_uuid_field'])) {
+      $uuid_valid = True;
+      //test for valid UUID
+      if (!preg_match("/^[0-9a-fA-F]{24}$/", $item['zoetrope_uuid_field'])) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'zoetrope_uuid_field_invalid',
+          'message' => t('Zoetrope ID field must be a valid UUID.'),
+        );
+        $uuid_valid = False;
+      }
+      // make a request to check it is infact a working image
+      if($uuid_valid){
+        $url = 'http:'.zoetrope_viewer_preview_image_url($item['zoetrope_uuid_field']);
+        $result = drupal_http_request($url);
+        if($result->code !== '200'){
+          $errors[$field['field_name']][$langcode][$delta][] = array(
+            'error' => 'zoetrope_uuid_field_invalid',
+            'message' => t('The Zoetrope ID does not seem to point to an image.'),
+          );
+        }
+      } 
+    }
+  }
+}
+
+/**
+ * Implements hook_field_widget_info().
+ *
+ * Only widget is a text input box.
+ */
+function zoetrope_viewer_field_widget_info() {
+  return array(
+    'zoetrope_uuid_field_text_widget' => array(
+      'label' => t('Zoetrope Text Field'),
+      'field types' => array('zoetrope_uuid_field'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * This implements our input box as defined in hook_field_widget_info().
+ */
+function zoetrope_viewer_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  
+  dsm($items);
+  $value = isset($items[$delta]['zoetrope_uuid_field']) ? $items[$delta]['zoetrope_uuid_field'] : '';
+
+  $widget = $element;
+  $widget['#delta'] = $delta;
+  switch ($instance['widget']['type']) {
+    case 'zoetrope_uuid_field_text_widget':
+      $widget += array(
+        '#type' => 'textfield',
+        '#default_value' => $value,
+        // Allow a slightly larger size that the field length to allow for some
+        // configurations where all characters won't fit in input field.
+        '#size' => 40,
+        '#maxlength' => 40,
+      );
+  }
+  $element['zoetrope_uuid_field'] = $widget;
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_error().
+ *
+ */
+function zoetrope_viewer_field_widget_error($element, $error, $form, &$form_state) {
+  switch ($error['error']) {
+    case 'zoetrope_uuid_field_invalid':
+      form_error($element, $error['message']);
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function zoetrope_viewer_field_is_empty($item, $field) {
+  return empty($item['zoetrope_uuid_field']);
+}
+
+/**
+* Implements hook_field_formatter_info().
+*/
+function zoetrope_viewer_field_formatter_info(){
+  $info = array(
+    'zoetrope_engage_image' => array(
+      'label' => t('Zoetrope Reel viewer'),
+      'field types' => array('zoetrope_uuid_field', 'text'),
+      'description' => t('Embeds the zoetrope viewer.'),
+      'settings' => array(
+        'inline_image' => false,
+        'force_mini' => false,
+        'trigger_size' => '0', //Fit to space by default
+      ),
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+
+  $element['inline_image'] = array(
+    '#type' => t('checkbox'),
+    '#title' => t('Inline Engage image'),
+    '#description' => 'Inline images appear in the page content, whereas normal engage images open in a responsive lightbox.',
+    '#default_value' => $settings['inline_image'],
+  );
+
+  $element['force_mini'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force Mini (Non inline only)'),
+    '#description' => t('Forces the viewer to display a mini zoetrope viewer, rather than the responsive one in the interest of bandwidth'),
+    '#default_value' => $settings['force_mini'],
+  );
+
+  $element['trigger_size'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Trigger Size (px)'),
+    '#description' => t('normally the Zoetrope engage trigger image will fill the space it\'s given (put it inside a sized block element if possible). This setting can override the sizing. Input without suffixes.'),
+    '#default_value' => $settings['trigger_size'],
+    '#element_validate' => array('element_validate_number'),
+  );
+
+  return $element;
+
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function zoetrope_viewer_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $parts = array(
+    ($settings['inline_image'] ? 'Inline' : 'Full'),
+    ($settings['force_mini'] ? 'Mini Viewer' : 'Responsive Viewer'),
+    ($settings['trigger_size'] == 0? '' : $settings['trigger_size'].'px trigger'),
+  );
+  return implode(' ', $parts);
+}
+
+/* TODO: move this to the download module */
+function zoetrope_viewer_inserts(){
+  $zoe_cdn = variable_get('zoe_reel:cdn', 
+              '//d34tuy4jppw3dn.cloudfront.net');
+
+  $ret = array(
+    'script' => $zoe_cdn.'/v1/js/zoe-widget.min.js',
+    'style' => $zoe_cdn.'/v1/css/style.css',
+  );
+  return $ret;
+}
+
+function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+
+  $element = array();
+  $settings = $display['settings'];
+  $site_uuid = variable_get('zoe_reel:site_uuid', '');
+  $zoe_cdn = variable_get('zoe_reel:cdn', '//d34tuy4jppw3dn.cloudfront.net');
+
+  drupal_add_js($zoe_cdn."/v1/js/zoe-widget.min.js", array(
+    'type' => 'external',
+    'group' => JS_THEME,
+    //'scope' => 'footer',
+    'weight' => 1000000
+    )
+  );
+  drupal_add_css($zoe_cdn."/v1/css/style.css", 'external');
+
+  dsm($items);
+  dsm($display);
+  foreach($items as $delta => $item){
+
+    $img_uuid = $item['zoetrope_uuid_field'];
+    $preview_path = zoetrope_viewer_preview_image_url($img_uuid);
+
+    switch($display['type']){
+      case 'zoetrope_engage_image':
+        $e = array(
+          '#theme' => 'image',
+          '#path' => $preview_path,
+          '#attributes' => array(
+              'data-zoe-image' => $img_uuid,
+              'data-zoe-site' => $site_uuid,
+              'data-zoe-rel' => $instance['id'],
+              'class' => array('zoe-engage-image')
+            ),
+        );
+        if($settings['force_mini']){
+          $e['#attributes']['class'][] = 'zoe-mini';
+        }
+        if($settings['inline_image']){
+          $e['#attributes']['data-zoe-inline'] = 'true';
+        }
+        if(intval($settings['trigger_size']) !== 0){
+          $e['#attributes']['width'] = $settings['trigger_size'];
+          $e['#attributes']['height'] = $settings['trigger_size'];
+        }
+
+        $element[$delta] = $e;
+      break;
+      case 'zoetrope_id':
+        $element[$delta] = array(
+          '#theme' => 'image',
+          '#variables' => array(
+            'path' => $preview_path,
+            'attributes' => array(
+              'data-zoe-image' => $img_uuid,
+              'data-zoe-site' => $site_uuid,
+              'class' => array('zoe-engage-image')
+            ),
+          )
+        );
+      break;
+    } 
+  }
+  return $element;
+}
+
+/* Implements hook_token_info_alter() */
+function zoetrope_viewer_token_info_alter(&$info){
+  $fields =  field_info_fields();
+
+  // Attach field tokens to their respecitve entity tokens.
+  foreach ($fields as $field_name => $field) {
+
+    if($field['type'] == 'zoetrope_uuid_field'){
+      foreach (array_keys($field['bundles']) as $token_type) {
+        $info['tokens'][$token_type][$field_name.'_preview_url'] = array(
+          // Note that label and description have already been sanitized by _token_field_info().
+          'name' => $field_name.' Preview url',
+          'description' => 'the url of the preview jpg for an engage image',
+          'module' => 'zoetrope_viewer',
+        );
+      }
+    }
+  }
+
+}
+
+/* Implements hook_tokens() */
+function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $options = array()){
+  $replacements = array();
+  $sanitize = !empty($options['sanitize']);
+
+  if ($type == 'entity' && !empty($data['entity_type']) && !empty($data['entity']) && !empty($data['token_type'])) {
+    $entity_type = $data['entity_type'];
+    $entity = $data['entity'];
+    list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+    $fields = field_info_instances($entity_type, $bundle);
+
+    foreach ($fields as $field_name => $field) {
+
+      // Do not continue if the field is empty.
+      $field_info = field_info_field($field_name);
+      if ($field_info['type'] != 'zoetrope_uuid_field' || empty($entity->{$field_name})) {
+        continue;
+      }
+      $token_name = $field_name.'_preview_url'; 
+
+      if (isset($tokens[$field_name]) && _token_module($data['token_type'], $field_name) == 'zoetrope_viewer') {
+        $original = $tokens[$field_name];
+        $replacements[$original] = zoetrope_viewer_preview_image_url($entity->{$field_name}['und'][0]['value']);
+      }
+    }
+  }
+
+  return $replacements;
+}
+
+// Helper functions
+function _zoetrope_viewer_image_url($uuid,$size=500,$position=0){
+  $zoe_cdn = variable_get('zoe_reel:cdn', 
+              '//d34tuy4jppw3dn.cloudfront.net');
+  if(!in_array($size, array(250,500,1000))){
+    watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.', 
+              $variables = array('@size' => $size), $severity = WATCHDOG_ERROR);
+  }
+  return $zoe_cdn.'/'.$uuid.'/'.$size.'/'.$position.'.jpg';
+}
+
+function zoetrope_viewer_preview_image_url($uuid){
+  return _zoetrope_viewer_image_url($uuid);
+}
+
+function zoetrope_viewer_large_image_url($uuid){
+  return _zoetrope_viewer_image_url($uuid,1000);
+}

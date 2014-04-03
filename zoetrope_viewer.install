@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Implements hook_field_schema().
+ *
+ * Defines the Zoetrope ID field column
+ */
+function zoetrope_viewer_field_schema($field) {
+  $columns = array(
+    // The UUID we're storing.
+    'zoetrope_uuid_field' => array(
+      'type' => 'varchar',
+      'length' => 36,
+      'not null' => FALSE,
+    ),
+  );
+  $indexes = array(
+    'zoetrope_uuid_field' => array('zoetrope_uuid_field'),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+}
+
+
+/* Implements hook_uninstall() */
+function zoetrope_viewer_uninstall(){
+	$vars = array('site_uuid', 'cdn');
+	foreach($vars as $var){
+		variable_delete('zoetrope_viewer:'.$var);
+	}
+}
