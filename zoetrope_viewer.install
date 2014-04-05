@@ -1,9 +1,13 @@
 <?php
+/**
+ * @file
+ * Zoetrope Viewer install/uninstall functions.
+ */
 
 /**
  * Implements hook_field_schema().
  *
- * Defines the Zoetrope ID field column
+ * Defines the Zoetrope ID field column.
  */
 function zoetrope_viewer_field_schema($field) {
   $columns = array(
@@ -23,11 +27,12 @@ function zoetrope_viewer_field_schema($field) {
   );
 }
 
-
-/* Implements hook_uninstall() */
-function zoetrope_viewer_uninstall(){
-	$vars = array('site_uuid', 'cdn');
-	foreach($vars as $var){
-		variable_delete('zoetrope_viewer:'.$var);
-	}
+/**
+ * Implements hook_uninstall().
+ */
+function zoetrope_viewer_uninstall() {
+  $vars = array('site_uuid', 'cdn');
+  foreach ($vars as $var) {
+    variable_delete('zoetrope_viewer:' . $var);
+  }
 }
