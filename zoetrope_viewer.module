@@ -7,9 +7,93 @@
  * Adds a UUID field type and field formatters to display zoetrope
  * engage&trade; images in a drupal site
  *
- * Borrows some UUID implementations from:
- *  https://drupal.org/sandbox/Mile23/1326218
  */
+
+/**
+ * This constant is the zoetrope CDN url, do not change here, there's a
+ * settings page to override it.
+ */
+const ZOETROPE_VIEWER_CDN = '//d34tuy4jppw3dn.cloudfront.net';
+
+/**
+ * Implements hook_permission
+ */
+function zoetrope_viewer_permission(){
+  return array(
+    'administer zoetrope viewer' => array(
+      'title' => t('Administer Zoetrope Viewer Settings'),
+      'restrict access' => TRUE,
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function zoetrope_viewer_menu() {
+  $menu['admin/config/media/zoetrope_viewer'] = array(
+    'title' => t('Zoetrope Viewer Settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('zoetrope_viewer_settings_form'),
+    'access arguments' => array('administer zoetrope viewer')
+  );
+  return $menu;
+}
+
+/**
+ * Implements hook_form().
+ */
+function zoetrope_viewer_settings_form($form, &$form_state) {
+
+  $form['custom_cdn'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use custom CDN'),
+    '#description' => t('Normally your images will be hosted by Zoetrope,' .
+      ' we will tell you if you need this.'),
+    '#default_value' => FALSE,
+  );
+
+  $form['cdn_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('base URL'),
+    '#description' => t('The CDN url with no http:// or https://'),
+    '#default_value' => '',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="custom_cdn"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  return $form;
+}
+
+/**
+ * Validation for CDN urls
+ */
+function zoetrope_viewer_settings_form_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  if($values['custom_cdn']) {
+    if(!valid_url($values['cdn_url'])){
+      form_set_error('cdn_url', t('The CDN url does not appear to be a valid url.'));
+    }
+  }
+}
+
+/**
+ * Implements hook_form_submit().
+ */
+function zoetrope_viewer_setttings_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  if($values['custom_cdn']) {
+    $zoe_cdn = $values['cdn_url'];
+  }
+  else {
+    // default zoetrope CDN
+    $zoe_cdn = ZOETROPE_VIEWER_CDN;
+  }
+  variable_set('zoetrope_viewer:cdn', $zoe_cdn);
+}
 
 /**
  * Implements hook_field_info().
@@ -262,7 +346,8 @@ function zoetrope_viewer_field_formatter_settings_summary($field, $instance, $vi
         $summary[] = t('Engage Image configured');
       }
       else {
-        $summary[] = t('Using field `@name` at the @pos of list.', array('@name' => $settings['zoetrope_uuid_field_name'], '@pos' => $settings['position']));
+        $summary[] = t('Using field `@name` at the @pos of list.',
+          array('@name' => $settings['zoetrope_uuid_field_name'], '@pos' => $settings['position']));
       }
       break;
   }
@@ -303,7 +388,7 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
 
   $element = array();
   $settings = $display['settings'];
-  $zoe_cdn = variable_get('zoetrope_viewer:cdn', '//d34tuy4jppw3dn.cloudfront.net');
+  $zoe_cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
   drupal_add_js($zoe_cdn . '/v1/js/zoe-widget.min.js', array(
     'type' => 'external',
     'group' => JS_THEME,
@@ -315,13 +400,13 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
   foreach ($items as $delta => $item) {
     switch ($display['type']) {
       case 'zoetrope_engage_image':
-        $element[$delta] = _zoetrope_engage_image_field_view($item, $settings, $instance['id']);
+        $element[$delta] = _zoetrope_viewer_engage_image_field_view($item, $settings, $instance['id']);
         break;
 
       case 'zoetrope_image_gallery':
 
         if (isset($item['zoetrope_uuid_field'])) {
-          $element[$delta] = _zoetrope_engage_image_field_view($item, $settings);
+          $element[$delta] = _zoetrope_viewer_engage_image_field_view($item, $settings);
         }
         else {
           $element[$delta] = array(
@@ -341,7 +426,7 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
 /**
  * Helper to make a renderable array.
  */
-function _zoetrope_engage_image_field_view($item, $settings, $rel = FALSE) {
+function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE) {
   $img_uuid = $item['zoetrope_uuid_field'];
   $site_uuid = variable_get('zoetrope_viewer:site_uuid', '');
   $preview_path = zoetrope_viewer_preview_image_url($img_uuid);
@@ -433,8 +518,7 @@ function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $op
  */
 function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0) {
   $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
-  $zoe_cdn = variable_get('zoetrope_viewer:cdn',
-              '//d34tuy4jppw3dn.cloudfront.net');
+  $zoe_cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
   if (!in_array($size, array(250, 500, 1000))) {
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.',
               array('@size' => $size), WATCHDOG_ERROR);

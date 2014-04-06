@@ -39,7 +39,7 @@ legacy/backup image field is called `field_image`.
       <?php render($content['field_image']); ?>
     </div>
   <?php }
-    else { ?>
+    else {?>
     <div class="product-image engage">
       <?php render($content['field_zoetrope_engage_image']); ?>
     </div>
