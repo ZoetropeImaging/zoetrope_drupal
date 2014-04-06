@@ -34,15 +34,16 @@ e.g. if your engage image field is called `field_zoetrope_engage_image` and your
 legacy/backup image field is called `field_image`.
 
 ```
-	<?php if(empty($content['field_zoetrope_engage_image'])){?>
-		<div class="product-image flat-shot">
-			<?php render($content['field_image']); ?>
-		</div>
-	<?php }else{ ?>
-		<div class="product-image engage">
-			<?php render($content['field_zoetrope_engage_image']); ?>
-		</div>
-	<?php } ?>
+  <?php if (empty($content['field_zoetrope_engage_image'])) {?>
+    <div class="product-image flat-shot">
+      <?php render($content['field_image']); ?>
+    </div>
+  <?php }
+    else { ?>
+    <div class="product-image engage">
+      <?php render($content['field_zoetrope_engage_image']); ?>
+    </div>
+  <?php } ?>
 ```
 
 If you want to combine a list of regular images with Zoetrope images for

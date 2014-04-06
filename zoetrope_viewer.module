@@ -129,7 +129,6 @@ function zoetrope_viewer_field_formatter_info() {
       'settings' => array(
         'inline_image' => FALSE,
         'force_mini' => FALSE,
-        // Fit to space by default.
         'image_style' => '',
       ),
     ),
@@ -162,7 +161,7 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
       $element['inline_image'] = array(
         '#type' => t('checkbox'),
         '#title' => t('Inline Engage image'),
-        '#description' => 'Inline images appear in the page content, whereas normal engage images open in a responsive lightbox overlay.',
+        '#description' => t('Inline images appear in the page content, whereas normal engage images open in a responsive lightbox overlay.'),
         '#default_value' => $settings['inline_image'],
       );
 
@@ -276,9 +275,9 @@ function zoetrope_viewer_field_formatter_settings_summary($field, $instance, $vi
 function zoetrope_viewer_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
 
   foreach ($entities as $id => $entity) {
-    // If it's a zoetrope_image_gallery display.
     $instance = $instances[$id];
     $display = $displays[$id];
+    // If it's a zoetrope_image_gallery display.
     if ($display['type'] == 'zoetrope_image_gallery' && !empty($display['settings']['zoetrope_uuid_field_name'])) {
       // Add the zoetrope engage images if we can.
       if (isset($entity->{$display['settings']['zoetrope_uuid_field_name']})) {
@@ -329,7 +328,7 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
             '#theme' => 'image_formatter',
             '#item' => $item,
             '#image_style' => $display['settings']['image_style'],
-            '#path' => isset($uri) ? $uri : '',
+            '#path' => '',
           );
         }
         break;
@@ -419,7 +418,7 @@ function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $op
         /*
          * TODO: How to deal with multiple deltas?
          */
-        $url = zoetrope_viewer_preview_image_url($entity->{$field_name}['und'][0]['zoetrope_uuid_field']);
+        $url = zoetrope_viewer_preview_image_url($entity->{$field_name}[LANGUAGE_NONE][0]['zoetrope_uuid_field']);
         $replacements[$token] = $url;
       }
     }
@@ -438,7 +437,7 @@ function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0) {
               '//d34tuy4jppw3dn.cloudfront.net');
   if (!in_array($size, array(250, 500, 1000))) {
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.',
-              $variables = array('@size' => $size), $severity = WATCHDOG_ERROR);
+              array('@size' => $size), WATCHDOG_ERROR);
   }
   return $mode . $zoe_cdn . '/' . $uuid . '/' . $size . '/' . $position . '.jpg';
 }

@@ -1,5 +1,4 @@
 name = Zoetrope Image Viewer
 description = Embed Zoetrope Images in your drupal site
 core = 7.x
-files[] = zoetrope_viewer.module
 package = Media
