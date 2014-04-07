@@ -213,6 +213,7 @@ function zoetrope_viewer_field_formatter_info() {
       'settings' => array(
         'inline_image' => FALSE,
         'force_mini' => FALSE,
+        'trigger_image' => '',
         'image_style' => '',
       ),
     ),
@@ -254,6 +255,24 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
         '#title' => t('Force Mini (Non inline only)'),
         '#description' => t('Forces the viewer to display a mini zoetrope viewer, rather than the responsive one in the interest of bandwidth'),
         '#default_value' => $settings['force_mini'],
+      );
+
+      $fields_info = field_info_instances($instance['entity_type'], $instance['bundle']);
+      $options = array();
+      foreach ($fields_info as $field_name => $field_instance) {
+        $field_info = field_info_field($field_name);
+        if ($field_info['type'] == 'image') {
+          $options[$field_name] = $field_instance['label'];
+        }
+      }
+
+      $element['trigger_image'] = array(
+        '#title' => t('Trigger Image Override field'),
+        '#type' => 'select',
+        '#description' => t('Select an image field to use as the trigger image, if present'),
+        '#default_value' => $settings['trigger_image'],
+        '#options' => $options,
+        '#empty_option' => t('None, (Use initial Engage view).'),
       );
 
       $image_styles = image_style_options(FALSE, PASS_THROUGH);
@@ -378,6 +397,16 @@ function zoetrope_viewer_field_formatter_prepare_view($entity_type, $entities, $
         }
       }
     }
+    elseif ($display['type'] == 'zoetrope_engage_image' && !empty($display['settings']['trigger_image'])) {
+      if (isset($entity->{$display['settings']['trigger_image']})) {
+        $image_field = $entity->{$display['settings']['trigger_image']}[LANGUAGE_NONE];
+        $e_items = &$items[$id];
+        // Match up image field deltas with zoetrope image deltas
+        foreach ($e_items as $delta => &$value) {
+          $value['trigger_image'] = $image_field[$delta];
+        }
+      }
+    }
   }
 }
 
@@ -430,6 +459,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   $img_uuid = $item['zoetrope_uuid_field'];
   $site_uuid = variable_get('zoetrope_viewer:site_uuid', '');
   $preview_path = zoetrope_viewer_preview_image_url($img_uuid);
+
   $e = array(
     '#theme' => 'image',
     '#path' => $preview_path,
@@ -440,16 +470,30 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'class' => array('zoe-engage-image'),
     ),
   );
+
+  if (isset($settings['trigger_image']) && !empty($item['trigger_image'])) {
+    $e['#path'] = $item['trigger_image'];
+    $e['#path'] = $item['trigger_image']['uri'];
+
+    if (!empty($settings['image_style'])) {
+      $e['#theme'] = 'image_style';
+      $e['#style_name'] = $settings['image_style'];
+    }
+  }
+
   if (isset($settings['force_mini']) && $settings['force_mini']) {
     $e['#attributes']['class'][] = 'zoe-mini';
   }
+
   if (isset($settings['inline_image']) && $settings['inline_image']) {
     $e['#attributes']['data-zoe-inline'] = '';
   }
+
   if (isset($settings['trigger_size']) && intval($settings['trigger_size']) !== 0) {
     $e['#attributes']['width'] = $settings['trigger_size'];
     $e['#attributes']['height'] = $settings['trigger_size'];
   }
+
   if (!empty($settings['image_style'])) {
     $dimensions = array('width' => 500, 'height' => 500);
     image_style_transform_dimensions($settings['image_style'], $dimensions);
