@@ -108,7 +108,56 @@ function zoetrope_viewer_field_info() {
       'description' => t('Add a Zoetrope Engage&trade; image to an entity'),
       'default_widget' => 'zoetrope_uuid_field_text_widget',
       'default_formatter' => 'zoetrope_engage_image',
-      'property_type' => 'text',
+      'property_type' => 'zoetrope_uuid_field',
+      'property_callbacks' => array('zoetrope_viewer_uuid_field_property_info_callback')
+    ),
+  );
+}
+
+/**
+ * Callback to alter the property info of Dimensions fields.
+ *
+ * @see physical_field_info().
+ */
+function zoetrope_viewer_uuid_field_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
+  $name = $field['field_name'];
+  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$name];
+
+  $property['type'] = ($field['cardinality'] != 1) ? 'list<zoetrope_uuid_field>' : 'zoetrope_uuid_field';
+  $property['getter callback'] = 'entity_metadata_field_verbatim_get';
+  $property['setter callback'] = 'entity_metadata_field_verbatim_set';
+  $property['auto creation'] = 'zoetrope_viewer_uuid_field_field_data_auto_creation';
+  $property['property info'] = zoetrope_viewer_uuid_field_field_data_property_info();
+
+  unset($property['query callback']);
+}
+
+/**
+ * Returns the default array structure for a Dimensions field for use when
+ * creating new data arrays through an entity metadata wrapper.
+ */
+function zoetrope_viewer_uuid_field_field_data_auto_creation() {
+  return array('zoetrope_uuid' => '', 'start_position' => 0);
+}
+
+/**
+ * Defines info for the properties of the Dimensions field data structure.
+ */
+function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
+  return array(
+    'zoetrope_uuid' => array(
+      'label' => t('Zoetrope ID'),
+      'description' => t('The Zoetrope ID for the image.'),
+      'type' => 'text',
+      'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    ),
+    'start_position' => array(
+      'label' => t('Starting Position'),
+      'description' => t('The index of the initial view.'),
+      'type' => 'integer',
+      'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
     ),
   );
 }
@@ -118,28 +167,39 @@ function zoetrope_viewer_field_info() {
  */
 function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   foreach ($items as $delta => $item) {
-    if (!empty($item['zoetrope_uuid_field'])) {
+    if (!empty($item['zoetrope_uuid'])) {
       $uuid_valid = TRUE;
       // Test for valid UUID (mongo ObjectID style UUID).
-      if (!preg_match("/^[0-9a-fA-F]{24}$/", $item['zoetrope_uuid_field'])) {
+      if (!preg_match("/^[0-9a-fA-F]{24}$/", $item['zoetrope_uuid'])) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
-          'error' => 'zoetrope_uuid_field_invalid',
+          'error' => 'zoetrope_uuid_field_uuid_invalid',
           'message' => t('Zoetrope ID field must be a valid UUID.'),
         );
         $uuid_valid = FALSE;
       }
       // Make a request to check it is infact a working image.
       if ($uuid_valid) {
-        $url = zoetrope_viewer_preview_image_url($item['zoetrope_uuid_field']);
+        $url = zoetrope_viewer_preview_image_url($item['zoetrope_uuid']);
         $result = drupal_http_request($url);
         if ($result->code !== '200') {
           $errors[$field['field_name']][$langcode][$delta][] = array(
-            'error' => 'zoetrope_uuid_field_invalid',
+            'error' => 'zoetrope_uuid_field_uuid_invalid',
             'message' => t('The Zoetrope ID does not seem to point to an image.'),
           );
         }
       }
+
+      if (!empty($item['start_position'])) {
+        $value = $item['start_position'];
+        if (!is_numeric($value) || intval($value) != $value || (intval($value) < 0) || (intval($value) > 107)) {
+          $errors[$field['field_name']][$langcode][$delta][] = array(
+            'error' => 'zoetrope_uuid_field_start_position_invalid',
+            'message' => t('The starting position needs to be an integer between 0-107.'),
+          );
+        }
+      }
     }
+
   }
 }
 
@@ -164,21 +224,46 @@ function zoetrope_viewer_field_widget_info() {
  */
 function zoetrope_viewer_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
 
-  $value = isset($items[$delta]['zoetrope_uuid_field']) ? $items[$delta]['zoetrope_uuid_field'] : '';
+  $uuid = isset($items[$delta]['zoetrope_uuid']) ?
+    $items[$delta]['zoetrope_uuid'] : '';
 
-  $widget = $element;
+  $start_position = isset($items[$delta]['start_position']) ?
+    $items[$delta]['start_position'] : '0';
+
+  $widget = &$element;
   $widget['#delta'] = $delta;
   switch ($instance['widget']['type']) {
     case 'zoetrope_uuid_field_text_widget':
       $widget += array(
+        '#type' => 'fieldset',
+        '#title' => t('Zoetrope Image'),
+        '#attached' => array(
+          'css' => array(drupal_get_path('module','zoetrope_viewer') . '/css/zoetrope_viewer_admin.css'),
+        )
+      );
+
+      $widget['zoetrope_uuid'] = array(
+        '#title' => t('Zoetrope ID'),
         '#type' => 'textfield',
-        '#default_value' => $value,
+        '#default_value' => $uuid,
         '#size' => 40,
         '#maxlength' => 40,
+        '#attributes' => array(
+          'class' => array('zoetrope-uuid-field-zoetrope-id'),
+        )
+      );
+      $widget['start_position'] = array(
+        '#title' => t('Start position'),
+        '#type' => 'textfield',
+        '#default_value' => $start_position,
+        '#size' => 3,
+        '#maxlength' => 3,
+        '#attributes' => array(
+          'class' => array('zoetrope-uuid-field-starting-position'),
+        )
       );
       break;
   }
-  $element['zoetrope_uuid_field'] = $widget;
   return $element;
 }
 
@@ -187,8 +272,11 @@ function zoetrope_viewer_field_widget_form(&$form, &$form_state, $field, $instan
  */
 function zoetrope_viewer_field_widget_error($element, $error, $form, &$form_state) {
   switch ($error['error']) {
-    case 'zoetrope_uuid_field_invalid':
-      form_error($element, $error['message']);
+    case 'zoetrope_uuid_field_uuid_invalid':
+      form_error($element['zoetrope_uuid'], $error['message']);
+      break;
+    case 'zoetrope_uuid_field_start_position_invalid':
+      form_error($element['start_position'], $error['message']);
       break;
   }
 }
@@ -198,7 +286,7 @@ function zoetrope_viewer_field_widget_error($element, $error, $form, &$form_stat
  * Implements hook_field_is_empty().
  */
 function zoetrope_viewer_field_is_empty($item, $field) {
-  return empty($item['zoetrope_uuid_field']);
+  return empty($item['zoetrope_uuid']);
 }
 
 /**
@@ -338,8 +426,10 @@ function zoetrope_viewer_field_formatter_settings_summary($field, $instance, $vi
   $summary = array();
   switch ($display['type']) {
     case 'zoetrope_engage_image':
-      $summary[] = $settings['inline_image'] ? 'Inline (no overlay)' : 'Show in Overlay';
-      $summary[] = $settings['force_mini'] ? 'Mini Viewer' : 'Responsive Viewer';
+      $summary[] = $settings['inline_image'] ? t('Inline (no overlay)') : t('Show in Overlay');
+      $summary[] = $settings['force_mini'] ? t('Mini Viewer') : t('Responsive Viewer');
+      $summary[] = $settings['trigger_image'] ? t('Using field \'@field\' for the trigger image',
+        array('@field' => $settings['trigger_image'])) : t('Zoetrope trigger image.');
       $image_styles = image_style_options(FALSE, PASS_THROUGH);
       // Unset possible 'No defined styles' option.
       unset($image_styles['']);
@@ -456,9 +546,12 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
  * Helper to make a renderable array.
  */
 function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE) {
-  $img_uuid = $item['zoetrope_uuid_field'];
+  $img_uuid = $item['zoetrope_uuid'];
+  $start_position = isset($item['start_position']) ?
+    $item['start_position'] : 0;
+
   $site_uuid = variable_get('zoetrope_viewer:site_uuid', '');
-  $preview_path = zoetrope_viewer_preview_image_url($img_uuid);
+  $preview_path = _zoetrope_viewer_image_url($img_uuid,500,$start_position);
 
   $e = array(
     '#theme' => 'image',
@@ -467,6 +560,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-image' => $img_uuid,
       'data-zoe-site' => $site_uuid,
       'data-zoe-rel' => $rel,
+      'data-zoe-start-ind' => $start_position,
       'class' => array('zoe-engage-image'),
     ),
   );
@@ -547,7 +641,7 @@ function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $op
         /*
          * TODO: How to deal with multiple deltas?
          */
-        $url = zoetrope_viewer_preview_image_url($entity->{$field_name}[LANGUAGE_NONE][0]['zoetrope_uuid_field']);
+        $url = zoetrope_viewer_preview_image_url($entity->{$field_name}[LANGUAGE_NONE][0]['zoetrope_uuid']);
         $replacements[$token] = $url;
       }
     }

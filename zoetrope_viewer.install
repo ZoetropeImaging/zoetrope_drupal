@@ -12,14 +12,20 @@
 function zoetrope_viewer_field_schema($field) {
   $columns = array(
     // The UUID we're storing.
-    'zoetrope_uuid_field' => array(
+    'zoetrope_uuid' => array(
       'type' => 'varchar',
       'length' => 36,
       'not null' => FALSE,
     ),
+    'start_position' => array(
+      'type' => 'numeric',
+      'size' => 'normal',
+      'default' => 0,
+      'not null' => FALSE
+    ),
   );
   $indexes = array(
-    'zoetrope_uuid_field' => array('zoetrope_uuid_field'),
+    'zoetrope_uuid' => array('zoetrope_uuid'),
   );
   return array(
     'columns' => $columns,
