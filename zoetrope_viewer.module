@@ -178,7 +178,7 @@ function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance
         $uuid_valid = FALSE;
       }
       // Make a request to check it is infact a working image.
-      if ($uuid_valid) {
+      /*if ($uuid_valid) {
         $url = zoetrope_viewer_preview_image_url($item['zoetrope_uuid']);
         $result = drupal_http_request($url);
         if ($result->code !== '200') {
@@ -187,7 +187,7 @@ function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance
             'message' => t('The Zoetrope ID does not seem to point to an image.'),
           );
         }
-      }
+      }*/
 
       if (!empty($item['start_position'])) {
         $value = $item['start_position'];
@@ -569,7 +569,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   );
 
   if($cdn){
-    $e['#attributes']['data-zoe-cdn'] = $cdn;
+    $e['#attributes']['data-zoe-cdn-override'] = $cdn;
   }
 
   // Alternate trigger image.
