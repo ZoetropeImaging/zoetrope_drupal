@@ -546,7 +546,6 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
  * Helper to make a renderable array.
  */
 function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE) {
-  dsm($item);
   $img_uuid = empty($item['zoetrope_uuid']) ? $item['value'] : $item['zoetrope_uuid'];
   $start_position = isset($item['start_position']) ?
     $item['start_position'] : 0;
