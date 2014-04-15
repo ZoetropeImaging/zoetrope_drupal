@@ -546,12 +546,16 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
  * Helper to make a renderable array.
  */
 function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE) {
-  $img_uuid = $item['zoetrope_uuid'];
+  dsm($item);
+  $img_uuid = empty($item['zoetrope_uuid']) ? $item['value'] : $item['zoetrope_uuid'];
   $start_position = isset($item['start_position']) ?
     $item['start_position'] : 0;
 
   $site_uuid = variable_get('zoetrope_viewer:site_uuid', '');
-  $preview_path = _zoetrope_viewer_image_url($img_uuid,500,$start_position);
+
+  // Override sites default CDN (done by modules sometimes).
+  $cdn = !empty($item['cdn']) ? $item['cdn'] : FALSE;
+  $preview_path = _zoetrope_viewer_image_url($img_uuid,500,$start_position,$cdn);
 
   $e = array(
     '#theme' => 'image',
@@ -565,6 +569,11 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
     ),
   );
 
+  if($cdn){
+    $e['#attributes']['data-zoe-cdn'] = $cdn;
+  }
+
+  // Alternate trigger image.
   if (isset($settings['trigger_image']) && !empty($item['trigger_image'])) {
     $e['#path'] = $item['trigger_image'];
     $e['#path'] = $item['trigger_image']['uri'];
@@ -575,25 +584,31 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
     }
   }
 
+  // Force the mini viewer.
   if (isset($settings['force_mini']) && $settings['force_mini']) {
     $e['#attributes']['class'][] = 'zoe-mini';
   }
 
+  // Inline the viewer.
   if (isset($settings['inline_image']) && $settings['inline_image']) {
     $e['#attributes']['data-zoe-inline'] = '';
   }
 
+  // Force the size of the trigger image (depreciated).
   if (isset($settings['trigger_size']) && intval($settings['trigger_size']) !== 0) {
     $e['#attributes']['width'] = $settings['trigger_size'];
     $e['#attributes']['height'] = $settings['trigger_size'];
   }
 
+  // Use the sizes from an image style for the trigger.
   if (!empty($settings['image_style'])) {
     $dimensions = array('width' => 500, 'height' => 500);
     image_style_transform_dimensions($settings['image_style'], $dimensions);
     $e['#attributes']['width'] = $dimensions['width'];
     $e['#attributes']['height'] = $dimensions['height'];
   }
+
+
   return $e;
 }
 
@@ -654,26 +669,28 @@ function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $op
 /**
  * Returns a preview image URL from the CDN.
  */
-function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0) {
+function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = FALSE) {
   $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
-  $zoe_cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
+  if ($cdn == FALSE) {
+    $cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
+  }
   if (!in_array($size, array(250, 500, 1000))) {
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.',
               array('@size' => $size), WATCHDOG_ERROR);
   }
-  return $mode . $zoe_cdn . '/' . $uuid . '/' . $size . '/' . $position . '.jpg';
+  return $mode . $cdn . '/' . $uuid . '/' . $size . '/' . $position . '.jpg';
 }
 
 /**
  * Shortcut for `_zoetrope_viewer_image_url($uuid, 500, 0)`.
  */
-function zoetrope_viewer_preview_image_url($uuid) {
-  return _zoetrope_viewer_image_url($uuid);
+function zoetrope_viewer_preview_image_url($uuid, $cdn=FALSE) {
+  return _zoetrope_viewer_image_url($uuid, 500, 0, $cdn);
 }
 
 /**
  * Shortcut for `_zoetrope_viewer_image_url($uuid, 1000, 0)`.
  */
-function zoetrope_viewer_large_image_url($uuid) {
-  return _zoetrope_viewer_image_url($uuid, 1000);
+function zoetrope_viewer_large_image_url($uuid, $cdn=FALSE) {
+  return _zoetrope_viewer_image_url($uuid, 1000, 0, $cdn);
 }
