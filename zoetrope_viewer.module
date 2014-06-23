@@ -508,13 +508,13 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
   $element = array();
   $settings = $display['settings'];
   $zoe_cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
-  drupal_add_js($zoe_cdn . '/v1/js/zoe-widget.min.js', array(
+  drupal_add_js(ZOETROPE_VIEWER_CDN . '/v1/js/zoe-widget.min.js', array(
     'type' => 'external',
     'group' => JS_THEME,
     'weight' => 1000000,
     )
   );
-  drupal_add_css($zoe_cdn . '/v1/css/style.css', 'external');
+  drupal_add_css(ZOETROPE_VIEWER_CDN . '/v1/css/style.css', 'external');
 
   foreach ($items as $delta => $item) {
     switch ($display['type']) {
