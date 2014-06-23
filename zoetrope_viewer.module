@@ -50,14 +50,14 @@ function zoetrope_viewer_settings_form($form, &$form_state) {
     '#title' => t('Use custom CDN'),
     '#description' => t('Normally your images will be hosted by Zoetrope,' .
       ' we will tell you if you need this.'),
-    '#default_value' => FALSE,
+    '#default_value' => (variable_get('zoetrope_viewer:cdn', FALSE)) ? 1 : 0,
   );
 
   $form['cdn_url'] = array(
     '#type' => 'textfield',
     '#title' => t('base URL'),
     '#description' => t('The CDN url with no http:// or https://'),
-    '#default_value' => '',
+    '#default_value' => variable_get('zoetrope_viewer:cdn', FALSE),
     '#states' => array(
       'visible' => array(
         ':input[name="custom_cdn"]' => array('checked' => TRUE),
@@ -65,6 +65,11 @@ function zoetrope_viewer_settings_form($form, &$form_state) {
     ),
   );
 
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  
   return $form;
 }
 
@@ -90,7 +95,7 @@ function zoetrope_viewer_settings_form_submit($form, &$form_state) {
   }
   else {
     // default zoetrope CDN
-    $zoe_cdn = ZOETROPE_VIEWER_CDN;
+    $zoe_cdn = FALSE;
   }
   variable_set('zoetrope_viewer:cdn', $zoe_cdn);
 }
