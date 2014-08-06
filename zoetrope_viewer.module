@@ -307,6 +307,7 @@ function zoetrope_viewer_field_formatter_info() {
         'inline_image' => FALSE,
         'force_mini' => FALSE,
         'trigger_image' => '',
+        '2d_version' => FALSE,
         'image_style' => '',
       ),
     ),
@@ -348,6 +349,13 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
         '#title' => t('Force Mini (Non inline only)'),
         '#description' => t('Forces the viewer to display a mini zoetrope viewer, rather than the responsive one in the interest of bandwidth'),
         '#default_value' => $settings['force_mini'],
+      );
+
+      $element['2d_version'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('2D version'),
+        '#description' => t('Forces the viewer to just show a 2D image'),
+        '#default_value' => $settings['2d_version'],
       );
 
       $fields_info = field_info_instances($instance['entity_type'], $instance['bundle']);
@@ -569,9 +577,12 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-site' => $site_uuid,
       'data-zoe-rel' => $rel,
       'data-zoe-start-ind' => $start_position,
-      'class' => array('zoe-engage-image'),
     ),
   );
+  
+  if(!isset($settings['2d_version']) || $settings['2d_version'] == FALSE ){
+    $e['class'] = array('zoe-engage-image');
+  }
 
   if($cdn){
     $e['#attributes']['data-zoe-cdn-override'] = $cdn;
