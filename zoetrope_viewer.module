@@ -142,7 +142,7 @@ function zoetrope_viewer_uuid_field_property_info_callback(&$info, $entity_type,
  * creating new data arrays through an entity metadata wrapper.
  */
 function zoetrope_viewer_uuid_field_field_data_auto_creation() {
-  return array('zoetrope_uuid' => '', 'start_position' => 0);
+  return array('zoetrope_uuid' => '', 'start_position' => 0, 'gallery_image_positions' => array());
 }
 
 /**
@@ -160,6 +160,13 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
     'start_position' => array(
       'label' => t('Starting Position'),
       'description' => t('The index of the initial view.'),
+      'type' => 'integer',
+      'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    ),
+    'gallery_image_positions' => array(
+      'label' => t('Gallery Image Positions'),
+      'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios.'),
       'type' => 'integer',
       'getter callback' => 'entity_property_verbatim_get',
       'setter callback' => 'entity_property_verbatim_set',
