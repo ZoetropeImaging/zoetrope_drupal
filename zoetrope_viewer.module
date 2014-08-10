@@ -142,7 +142,7 @@ function zoetrope_viewer_uuid_field_property_info_callback(&$info, $entity_type,
  * creating new data arrays through an entity metadata wrapper.
  */
 function zoetrope_viewer_uuid_field_field_data_auto_creation() {
-  return array('zoetrope_uuid' => '', 'start_position' => 0);
+  return array('zoetrope_uuid' => '', 'start_position' => 0, 'gallery_image_positions' => array());
 }
 
 /**
@@ -155,7 +155,7 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
       'description' => t('The Zoetrope ID for the image.'),
       'type' => 'text',
       'getter callback' => 'entity_property_verbatim_get',
-      'setter callback' => 'entity_property_verbatim_set',
+      'setter callback '=> 'entity_property_verbatim_set',
     ),
     'start_position' => array(
       'label' => t('Starting Position'),
@@ -164,7 +164,40 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
       'getter callback' => 'entity_property_verbatim_get',
       'setter callback' => 'entity_property_verbatim_set',
     ),
+    'gallery_image_positions' => array(
+      'label' => t('Gallery Image Positions'),
+      'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios.'),
+      'type' => 'list<struct>',
+      'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    ),
   );
+}
+
+/**
+ * Implements hook_field_presave().
+ *
+ * gallery_image_positions needs to be serialized here
+ */
+function zoetrope_viewer_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items){
+  foreach($items as &$item){
+    if(isset($item['gallery_image_positions'])){
+      $item['gallery_image_positions'] = serialize($item['gallery_image_positions']);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_load().
+ */
+function zoetrope_viewer_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age){
+  foreach($items as &$entity){
+    foreach ($entity as &$item) {
+      if(isset($item['gallery_image_positions'])){
+        $item['gallery_image_positions'] = unserialize($item['gallery_image_positions']);
+      }
+    }
+  }
 }
 
 /**
@@ -205,6 +238,7 @@ function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance
       }
     }
 
+    //TODO: add validation of gallery_image_positions
   }
 }
 
