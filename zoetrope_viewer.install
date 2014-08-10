@@ -23,6 +23,12 @@ function zoetrope_viewer_field_schema($field) {
       'default' => 0,
       'not null' => FALSE
     ),
+    'gallery_image_positions' => array(
+      'type' => 'varchar',
+      'length' => 10000,
+      'serialize' => TRUE,
+      'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios')
+    )
   );
   $indexes = array(
     'zoetrope_uuid' => array('zoetrope_uuid'),
@@ -41,4 +47,45 @@ function zoetrope_viewer_uninstall() {
   foreach ($vars as $var) {
     variable_delete('zoetrope_viewer:' . $var);
   }
+}
+
+/**
+  * Returns all fields created on the system of the type defined in mymodule.
+  * Thanks https://www.drupal.org/node/150215 :).
+  */
+function zoetrope_viewer_get_zoetrope_fields() {
+  $types = array_keys(zoetrope_viewer_field_info()); // field types defined in mymodule
+  $fields = array();
+  foreach (field_info_fields() as $field) {
+    if (in_array($field['type'], $types)) {
+      $fields[] = $field;
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Add a serial field to the zoetrope_uuid field to hold
+ * data about the gallery images.
+ */
+function zoetrope_viewer_update_7002(){
+
+  $col = 'gallery_image_positions';
+  $field_spec = zoetrope_viewer_field_schema($field)
+                  ['columns'][$col];
+
+  $fields = zoetrope_viewer_get_zoetrope_fields();
+  foreach ($fields as $field) {
+    $table_prefixes = array(
+      _field_sql_storage_tablename($field),
+      _field_sql_storage_revision_tablename($field)
+    );
+    foreach ($table_prefixes as $table_prefix) {
+      $field_name = $field['field_name'];
+      $table = $table_prefix;
+      $column_name = $field_name.'_'.$col;
+      db_add_field($table, $column_name, $field_spec); 
+    }
+  }
+
 }
