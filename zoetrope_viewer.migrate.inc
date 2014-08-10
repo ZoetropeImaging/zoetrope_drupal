@@ -1,6 +1,6 @@
 <?php
 
-function zoe_migrate_migrate_api() {
+function zoetrope_viewer_migrate_api() {
   $api = array(
     'api' => 2,
     'field handlers' => array('ZoetropeUUIDFieldHandler')
