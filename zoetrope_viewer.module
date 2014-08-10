@@ -69,7 +69,7 @@ function zoetrope_viewer_settings_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
-  
+
   return $form;
 }
 
@@ -586,9 +586,9 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-start-ind' => $start_position,
     ),
   );
-  
+
   if(!isset($settings['2d_version']) || $settings['2d_version'] == FALSE ){
-    $e['class'] = array('zoe-engage-image');
+    $e['#attributes']['class'] = array('zoe-engage-image');
   }
 
   if($cdn){
