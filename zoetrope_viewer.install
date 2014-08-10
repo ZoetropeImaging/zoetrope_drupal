@@ -27,7 +27,7 @@ function zoetrope_viewer_field_schema($field) {
       'type' => 'varchar',
       'length' => 10000,
       'serialize' => TRUE,
-      'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios')
+      'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios'),
     )
   );
   $indexes = array(
@@ -68,7 +68,7 @@ function zoetrope_viewer_get_zoetrope_fields() {
  * Add a serial field to the zoetrope_uuid field to hold
  * data about the gallery images.
  */
-function zoetrope_viewer_update_7002(){
+function zoetrope_viewer_update_7001(){
 
   $col = 'gallery_image_positions';
   $field_spec = zoetrope_viewer_field_schema($field)

@@ -40,6 +40,7 @@ class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
     $fields = array();
     if ($type == 'zoetrope_uuid_field') {
       $fields['start_position'] = t('Subfield: the starting position');
+      $fields['gallery_image_positions'] = t('Subfield: the gallery image positions');
     }
     return $fields;
   }
@@ -72,10 +73,33 @@ class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
         }
       }
 
+      /* Will be a list<struct> with keys "weight" and "position". "postition" is required, "weight" is optional. */
+      if (isset($arguments['gallery_image_positions']) && is_array($arguments['gallery_image_positions'])) {
+        
+        if(is_array(reset(reset($arguments['gallery_image_positions'])))){
+          $item['gallery_image_positions'] = _zoetrope_viewer_gallery_image_helper($arguments['gallery_image_positions'][$delta]);
+        }
+        else {
+          $item['gallery_image_positions'] = _zoetrope_viewer_gallery_image_helper($arguments['gallery_image_positions']);
+        }
+      }
+
       $return[LANGUAGE_NONE][] = $item;
       $delta++;
     }
-
     return isset($return) ? $return : NULL;
   }
+}
+
+function _zoetrope_viewer_gallery_image_helper($list){
+  $ret = array();
+  foreach ($list as $struct) {
+    if(is_array($struct) && isset($struct['position']) && is_numeric($struct['position'])){
+      $ret[] = array(
+        'position' => intval($struct['position']),
+        'weight' => (isset($struct['weight'])? floatval($struct['weight']) : 0),
+      );
+    }
+  }
+  return $ret;
 }
