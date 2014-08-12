@@ -167,7 +167,7 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
     'gallery_image_positions' => array(
       'label' => t('Gallery Image Positions'),
       'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios.'),
-      'type' => 'list<struct>',
+      'type' => 'struct',
       'getter callback' => 'entity_property_verbatim_get',
       'setter callback' => 'entity_property_verbatim_set',
     ),
@@ -343,6 +343,9 @@ function zoetrope_viewer_field_formatter_info() {
         'trigger_image' => '',
         '2d_version' => FALSE,
         'image_style' => '',
+        'autospin' => FALSE,
+        'animate' => FALSE,
+        'hide_cta' => FALSE,
       ),
     ),
     'zoetrope_image_gallery' => array(
@@ -381,15 +384,36 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
       $element['force_mini'] = array(
         '#type' => 'checkbox',
         '#title' => t('Force Mini (Non inline only)'),
-        '#description' => t('Forces the viewer to display a mini zoetrope viewer, rather than the responsive one in the interest of bandwidth'),
+        '#description' => t('Forces the viewer to display a mini zoetrope viewer, rather than the responsive one in the interest of bandwidth.'),
         '#default_value' => $settings['force_mini'],
       );
 
       $element['2d_version'] = array(
         '#type' => 'checkbox',
         '#title' => t('2D version'),
-        '#description' => t('Forces the viewer to just show a 2D image'),
+        '#description' => t('Forces the viewer to just show a 2D image.'),
         '#default_value' => $settings['2d_version'],
+      );
+
+      $element['autospin'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Spin once on load'),
+        '#description' => t('Spins one time when loaded.'),
+        '#default_value' => $settings['autospin'],
+      );
+
+      $element['animate'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Spin when Idle'),
+        '#description' => t('Spins when not being dragged by the user.'),
+        '#default_value' => $settings['animate'],
+      );
+
+      $element['hide_cta'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Hide calls to action'),
+        '#description' => t('Hides the labels which indcate the viewer is interactive.'),
+        '#default_value' => $settings['hide_cta'],
       );
 
       $fields_info = field_info_instances($instance['entity_type'], $instance['bundle']);
@@ -404,7 +428,7 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
       $element['trigger_image'] = array(
         '#title' => t('Trigger Image Override field'),
         '#type' => 'select',
-        '#description' => t('Select an image field to use as the trigger image, if present'),
+        '#description' => t('Select an image field to use as the trigger image if present.'),
         '#default_value' => $settings['trigger_image'],
         '#options' => $options,
         '#empty_option' => t('None, (Use initial Engage view).'),
