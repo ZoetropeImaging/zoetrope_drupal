@@ -343,9 +343,11 @@ function zoetrope_viewer_field_formatter_info() {
         'trigger_image' => '',
         '2d_version' => FALSE,
         'image_style' => '',
-        'autospin' => FALSE,
-        'animate' => FALSE,
-        'hide_cta' => FALSE,
+        'loadspin' => FALSE,
+        'idle-animate' => FALSE,
+        'autoload' => FALSE,
+        'preload' => FALSE,
+        'show-cta' => FALSE,
       ),
     ),
     'zoetrope_image_gallery' => array(
@@ -371,21 +373,16 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
   $settings = $display['settings'];
   $element = array();
 
+  dsm($field);
+
   switch ($instance['display'][$view_mode]['type']) {
 
     case 'zoetrope_engage_image':
-      $element['inline_image'] = array(
-        '#type' => t('checkbox'),
-        '#title' => t('Inline Engage image'),
-        '#description' => t('Inline images appear in the page content, whereas normal engage images open in a responsive lightbox overlay.'),
-        '#default_value' => $settings['inline_image'],
-      );
 
-      $element['force_mini'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Force Mini (Non inline only)'),
-        '#description' => t('Forces the viewer to display a mini zoetrope viewer, rather than the responsive one in the interest of bandwidth.'),
-        '#default_value' => $settings['force_mini'],
+      $states_non_2d =  array(
+        'visible' => array(
+          ':input[name="fields['.$field['field_name'].'][settings_edit_form][settings][2d_version]"]' => array('checked' => FALSE),
+        ),
       );
 
       $element['2d_version'] = array(
@@ -395,26 +392,62 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
         '#default_value' => $settings['2d_version'],
       );
 
-      $element['autospin'] = array(
+      $element['inline_image'] = array(
+        '#type' => t('checkbox'),
+        '#title' => t('Inline Engage image'),
+        '#description' => t('Inline images appear in the page content, whereas normal engage images open in a responsive lightbox overlay.'),
+        '#default_value' => $settings['inline_image'],
+        '#states' => $states_non_2d,
+      );
+
+      $element['force_mini'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Force Mini (Non inline only)'),
+        '#description' => t('Forces the viewer to display a mini zoetrope viewer, rather than the responsive one in the interest of bandwidth.'),
+        '#default_value' => $settings['force_mini'],
+        '#states' => $states_non_2d,
+      );
+
+      $element['loadspin'] = array(
         '#type' => 'checkbox',
         '#title' => t('Spin once on load'),
         '#description' => t('Spins one time when loaded.'),
         '#default_value' => $settings['autospin'],
+        '#states' => $states_non_2d,
       );
 
-      $element['animate'] = array(
+      $element['idle-animate'] = array(
         '#type' => 'checkbox',
         '#title' => t('Spin when Idle'),
         '#description' => t('Spins when not being dragged by the user.'),
-        '#default_value' => $settings['animate'],
+        '#default_value' => $settings['idle-animate'],
+        '#states' => $states_non_2d,
       );
 
-      $element['hide_cta'] = array(
+      $element['show-cta'] = array(
         '#type' => 'checkbox',
         '#title' => t('Hide calls to action'),
         '#description' => t('Hides the labels which indcate the viewer is interactive.'),
-        '#default_value' => $settings['hide_cta'],
+        '#default_value' => $settings['show-cta'],
+        '#states' => $states_non_2d,
       );
+
+      $element['autoload'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Instant load'),
+        '#description' => t('autoload on pageload.'),
+        '#default_value' => $settings['autoload'],
+        '#states' => $states_non_2d,
+      );
+
+      $element['preload'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Preload'),
+        '#description' => t('Preload for extra responsiveness at the cost of server bandwidth'),
+        '#default_value' => $settings['preload'],
+        '#states' => $states_non_2d,
+      );
+      $element['preload']['#states']['visible'][':input[name="autoload"]'] = array('value' => FALSE);
 
       $fields_info = field_info_instances($instance['entity_type'], $instance['bundle']);
       $options = array();
@@ -638,8 +671,26 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
     ),
   );
 
+  // Force the size of the trigger image (depreciated).
+  if (isset($settings['trigger_size']) && intval($settings['trigger_size']) !== 0) {
+    $e['#attributes']['width'] = $settings['trigger_size'];
+    $e['#attributes']['height'] = $settings['trigger_size'];
+  }
+
+  // Use the sizes from an image style for the trigger.
+  if (!empty($settings['image_style'])) {
+    $dimensions = array('width' => 500, 'height' => 500);
+    image_style_transform_dimensions($settings['image_style'], $dimensions);
+    $e['#attributes']['width'] = $dimensions['width'];
+    $e['#attributes']['height'] = $dimensions['height'];
+  }
+
   if(!isset($settings['2d_version']) || $settings['2d_version'] == FALSE ){
     $e['#attributes']['class'] = array('zoe-engage-image');
+  }
+  else{
+    // we can quit here to keep the markup cleaner with attributes which wont be used
+    return $e;
   }
 
   if($cdn){
@@ -667,20 +718,31 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
     $e['#attributes']['data-zoe-inline'] = '';
   }
 
-  // Force the size of the trigger image (depreciated).
-  if (isset($settings['trigger_size']) && intval($settings['trigger_size']) !== 0) {
-    $e['#attributes']['width'] = $settings['trigger_size'];
-    $e['#attributes']['height'] = $settings['trigger_size'];
+
+  // Spin once on load
+  if(!empty($settings['loadspin']) && $settings['loadspin']){
+    $e['#attributes']['data-zoe-loadspin'] = '1';
   }
 
-  // Use the sizes from an image style for the trigger.
-  if (!empty($settings['image_style'])) {
-    $dimensions = array('width' => 500, 'height' => 500);
-    image_style_transform_dimensions($settings['image_style'], $dimensions);
-    $e['#attributes']['width'] = $dimensions['width'];
-    $e['#attributes']['height'] = $dimensions['height'];
+  // Animate 
+  if(!empty($settings['auto-animate']) && $settings['auto-animate']){
+    $e['#attributes']['data-zoe-auto-animate'] = '1';
   }
 
+  //hide CTA
+  if(!empty($settings['show-cta']) && $settings['show-cta']){
+    $e['#attributes']['data-zoe-show-cta'] = '1';
+  }
+
+  //autoload
+  if(!empty($settings['autoload']) && $settings['autoload']){
+    $e['#attributes']['data-zoe-autoload'] = '1';
+  }
+
+  //preload
+  if(!empty($settings['preload']) && $settings['preload']){
+    $e['#attributes']['data-zoe-preload'] = '1';
+  }
 
   return $e;
 }
