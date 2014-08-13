@@ -373,8 +373,6 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
   $settings = $display['settings'];
   $element = array();
 
-  dsm($field);
-
   switch ($instance['display'][$view_mode]['type']) {
 
     case 'zoetrope_engage_image':
@@ -724,7 +722,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
     $e['#attributes']['data-zoe-loadspin'] = '1';
   }
 
-  // Animate 
+  // Animate
   if(!empty($settings['auto-animate']) && $settings['auto-animate']){
     $e['#attributes']['data-zoe-auto-animate'] = '1';
   }
