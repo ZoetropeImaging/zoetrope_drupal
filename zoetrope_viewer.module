@@ -181,7 +181,7 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
  */
 function zoetrope_viewer_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items){
   foreach($items as &$item){
-    if(isset($item['gallery_image_positions'])){
+    if(isset($item['gallery_image_positions']) && is_array($item['gallery_image_positions'])){
       $item['gallery_image_positions'] = serialize($item['gallery_image_positions']);
     }
   }
@@ -193,7 +193,7 @@ function zoetrope_viewer_field_presave($entity_type, $entity, $field, $instance,
 function zoetrope_viewer_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age){
   foreach($items as &$entity){
     foreach ($entity as &$item) {
-      if(isset($item['gallery_image_positions'])){
+      if(isset($item['gallery_image_positions']) && is_string($item['gallery_image_positions'])){
         $item['gallery_image_positions'] = unserialize($item['gallery_image_positions']);
       }
     }
