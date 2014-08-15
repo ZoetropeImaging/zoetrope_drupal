@@ -655,7 +655,8 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   $site_uuid = variable_get('zoetrope_viewer:site_uuid', '');
 
   // Override sites default CDN (done by modules sometimes).
-  $cdn = !empty($item['cdn']) ? $item['cdn'] : FALSE;
+  $cdn = !empty($settings['cdn']) ? $settings['cdn'] : FALSE;
+  $cdn = !empty($item['cdn']) ? $item['cdn'] : $cdn;
   $preview_path = _zoetrope_viewer_image_url($img_uuid,500,$start_position,$cdn);
 
   $e = array(
