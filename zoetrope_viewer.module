@@ -347,7 +347,7 @@ function zoetrope_viewer_field_formatter_info() {
         'idle-animate' => FALSE,
         'autoload' => FALSE,
         'preload' => FALSE,
-        'show-cta' => FALSE,
+        'show-cta' => TRUE,
       ),
     ),
     'zoetrope_image_gallery' => array(
@@ -424,7 +424,7 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
 
       $element['show-cta'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Hide calls to action'),
+        '#title' => t('Show call to action'),
         '#description' => t('Hides the labels which indcate the viewer is interactive.'),
         '#default_value' => $settings['show-cta'],
         '#states' => $states_non_2d,
@@ -610,13 +610,13 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
   $element = array();
   $settings = $display['settings'];
   $zoe_cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
-  drupal_add_js(ZOETROPE_VIEWER_CDN . '/v1/js/zoe-widget.min.js', array(
+  drupal_add_js(ZOETROPE_VIEWER_CDN . '/v3/js/zoetrope.jquery.js', array(
     'type' => 'external',
     'group' => JS_THEME,
     'weight' => 1000000,
     )
   );
-  drupal_add_css(ZOETROPE_VIEWER_CDN . '/v1/css/style.css', 'external');
+  drupal_add_css(ZOETROPE_VIEWER_CDN . '/v3/css/zoetrope.jquery.min.css', 'external');
 
   foreach ($items as $delta => $item) {
     switch ($display['type']) {
@@ -666,8 +666,8 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-image' => $img_uuid,
       'data-zoe-site' => $site_uuid,
       'data-zoe-rel' => $rel,
-      'data-zoe-start-ind' => $start_position,
-    ),
+      'data-zoe-start-ind' => $start_position
+,    ),
   );
 
   // Force the size of the trigger image (depreciated).
@@ -693,7 +693,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   }
 
   if($cdn){
-    $e['#attributes']['data-zoe-cdn-override'] = $cdn;
+    $e['#attributes']['data-zoe-cdn'] = $cdn;
   }
 
   // Alternate trigger image.
@@ -713,34 +713,34 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   }
 
   // Inline the viewer.
-  if (isset($settings['inline_image']) && $settings['inline_image']) {
-    $e['#attributes']['data-zoe-inline'] = '';
+  if (isset($settings['inline_image']) && !$settings['inline_image']) {
+    $e['#attributes']['data-zoe-inline'] = 'false';
   }
 
 
   // Spin once on load
   if(!empty($settings['loadspin']) && $settings['loadspin']){
-    $e['#attributes']['data-zoe-loadspin'] = '1';
+    $e['#attributes']['data-zoe-loadspin'] = 'true';
   }
 
   // Animate
   if(!empty($settings['auto-animate']) && $settings['auto-animate']){
-    $e['#attributes']['data-zoe-auto-animate'] = '1';
+    $e['#attributes']['data-zoe-auto-animate'] = 'true';
   }
 
   //hide CTA
   if(!empty($settings['show-cta']) && $settings['show-cta']){
-    $e['#attributes']['data-zoe-show-cta'] = '1';
+    $e['#attributes']['data-zoe-show-cta'] = 'true';
   }
 
   //autoload
   if(!empty($settings['autoload']) && $settings['autoload']){
-    $e['#attributes']['data-zoe-autoload'] = '1';
+    $e['#attributes']['data-zoe-autoload'] = 'true';
   }
 
   //preload
-  if(!empty($settings['preload']) && $settings['preload']){
-    $e['#attributes']['data-zoe-preload'] = '1';
+  if(isset($settings['preload']) && !$settings['preload']){
+    $e['#attributes']['data-zoe-preload'] = 'false';
   }
 
   return $e;
