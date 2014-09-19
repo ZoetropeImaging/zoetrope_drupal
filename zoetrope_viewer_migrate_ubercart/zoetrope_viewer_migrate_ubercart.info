@@ -1,0 +1,10 @@
+name = Zoetrope Ubercart Image Migration
+description = Sync your Zoetrope images from your Zoetrope account to ubercart products
+core = 7.x
+package = "Media"
+dependencies[] = migrate
+dependencies[] = ubercart
+dependencies[] = zoetrope_viewer
+configure = admin/content/zoetrope_ubercart
+
+files[] = "includes/zoetrope_viewer_ubercart_migration.inc"
