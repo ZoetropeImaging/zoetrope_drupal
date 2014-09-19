@@ -1,19 +1,34 @@
 <?php
 
+/**
+ * @file
+ * Defines a migration destination for zoetrope_image fields.
+ */
+
+/**
+ * Implements hook_migrate_api().
+ */
 function zoetrope_viewer_migrate_api() {
   $api = array(
     'api' => 2,
-    'field handlers' => array('ZoetropeUUIDFieldHandler')
+    'field handlers' => array('ZoetropeUUIDFieldHandler'),
   );
   return $api;
 }
 
 class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
+
+  /**
+   * Tell migrate what fields we can handle.
+   */
   public function __construct() {
     $this->registerTypes(array('zoetrope_uuid_field'));
   }
 
-  static function arguments($zoetrope_uuid = NULL, $start_position = NULL) {
+  /**
+   * Implementation of MigrateFieldHandler::arguments().
+   */
+  public function arguments($zoetrope_uuid = NULL, $start_position = NULL) {
     $arguments = array();
     if (!is_null($zoetrope_uuid)) {
       $arguments['zoetrope_uuid'] = $zoetrope_uuid;
@@ -26,15 +41,6 @@ class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
 
   /**
    * Implementation of MigrateFieldHandler::fields().
-   *
-   * @param $type
-   *  The field type.
-   * @param $instance
-   *  Instance info for the field.
-   * @param Migration $migration
-   *  The migration context for the parent field. We can look at the mappings
-   *  and determine which subfields are relevant.
-   * @return array
    */
   public function fields($type, $instance, $migration = NULL) {
     $fields = array();
@@ -45,6 +51,9 @@ class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
     return $fields;
   }
 
+  /**
+   * Implementation of MigrateFieldHandler::prepare().
+   */
   public function prepare($entity, array $field_info, array $instance, array $values) {
     if (isset($values['arguments'])) {
       $arguments = $values['arguments'];
@@ -74,9 +83,10 @@ class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
       }
 
       /* Will be a list<struct> with keys "weight" and "position". "postition" is required, "weight" is optional. */
+
       if (isset($arguments['gallery_image_positions']) && is_array($arguments['gallery_image_positions'])) {
-        
-        if(is_array(reset(reset($arguments['gallery_image_positions'])))){
+
+        if (is_array(reset(reset($arguments['gallery_image_positions'])))) {
           $item['gallery_image_positions'] = _zoetrope_viewer_gallery_image_helper($arguments['gallery_image_positions'][$delta]);
         }
         else {
@@ -91,13 +101,16 @@ class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
   }
 }
 
-function _zoetrope_viewer_gallery_image_helper($list){
+/**
+ * Clean the gallery image formatter to drop any additional payload.
+ */
+function _zoetrope_viewer_gallery_image_helper($list) {
   $ret = array();
   foreach ($list as $struct) {
-    if(is_array($struct) && isset($struct['position']) && is_numeric($struct['position'])){
+    if (is_array($struct) && isset($struct['position']) && is_numeric($struct['position'])) {
       $ret[] = array(
         'position' => intval($struct['position']),
-        'weight' => (isset($struct['weight'])? floatval($struct['weight']) : 0),
+        'weight' => (isset($struct['weight']) ? floatval($struct['weight']) : 0),
       );
     }
   }

@@ -1,5 +1,6 @@
 name = Zoetrope Image Viewer
 description = Embed Zoetrope Images in your drupal site
 core = 7.x
-package = Media
+package = "Media"
+files[] = zoetrope_viewer.migrate.inc
 configure = admin/config/media/zoetrope_viewer
