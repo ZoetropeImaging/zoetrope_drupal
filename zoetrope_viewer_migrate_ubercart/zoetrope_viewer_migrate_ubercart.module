@@ -29,6 +29,7 @@ function zoetrope_viewer_migrate_ubercart_menu() {
     'access arguments' => array("administer site configuration"),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('zoetrope_viewer_migrate_ubercart_settings_form'),
+    'file' => FALSE,
   );
 
   return $menu;
@@ -67,7 +68,7 @@ function zoetrope_viewer_migrate_ubercart_settings_form($form, $form_state) {
     '#default_value' => NULL,
   );
 
-  if (len($options) == 0) {
+  if (count($options) == 0) {
     drupal_set_message('You need to add a `zoetrope_image` field to a ubercart_product type before importing', 'error');
     $form['zoetrope_viewer_migrate_ubercart:dest_field']['#disabled'] = TRUE;
   }

@@ -16,14 +16,14 @@ class ZoetropeViewerUbercartMigration extends Migration {
     $this->description = t('Import Zoetrope image to your ubercart site, keyed on SKU, from your Zoetrope image feed.');
 
     // Create a MigrateSource object, which manages retrieving the input data.
-    $source_file = var_get('zoetrope_viewer_migrate_ubercart:source_url', FALSE);
+    $source_file = variable_get('zoetrope_viewer_migrate_ubercart:source_url', FALSE);
     if (!$source_file) {
       throw new MigrateException(t('You need to set your import url for Zoetrope images on the @link',
           array('@link' => l(t('settings page'), 'admin/content/zoetrope_ubercart'))));
     }
 
     // Get the configured destination field.
-    $destination_field = var_get('zoetrope_viewer_migrate_ubercart:dest_field', FALSE);
+    $destination_field = variable_get('zoetrope_viewer_migrate_ubercart:dest_field', FALSE);
     if (!$destination_field) {
       throw new MigrateException(t('You need to set up a field to import to your Zoetrope images to on the @link',
           array('@link' => l(t('settings page'), 'admin/content/zoetrope_ubercart'))));

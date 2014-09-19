@@ -3,7 +3,7 @@ description = Sync your Zoetrope images from your Zoetrope account to commerce p
 core = 7.x
 package = "Media"
 dependencies[] = migrate
-dependencies[] = ubercart
+dependencies[] = commerce_product
 dependencies[] = zoetrope_viewer
 configure = admin/content/zoetrope_commerce
 
