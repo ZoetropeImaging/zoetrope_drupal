@@ -665,7 +665,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-image' => $img_uuid,
       'data-zoe-site' => $site_uuid,
       'data-zoe-rel' => $rel,
-      'data-zoe-start-ind' => $start_position,
+      'data-zoe-start-position' => $start_position,
     ),
   );
 
@@ -712,8 +712,8 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   }
 
   // Inline the viewer.
-  if (isset($settings['inline_image']) && $settings['inline_image']) {
-    $e['#attributes']['data-zoe-inline'] = '';
+  if (isset($settings['inline_image']) && !$settings['inline_image']) {
+    $e['#attributes']['data-zoe-inline'] = 'false';
   }
 
 
