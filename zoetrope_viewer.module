@@ -656,7 +656,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-image' => $img_uuid,
       'data-zoe-site' => $site_uuid,
       'data-zoe-rel' => $rel,
-      'data-zoe-start-ind' => $start_position
+      'data-zoe-start-position' => $start_position
       ,
     ),
   );
