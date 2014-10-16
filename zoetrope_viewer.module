@@ -119,9 +119,7 @@ function zoetrope_viewer_field_info() {
 }
 
 /**
- * Callback to alter the property info of Dimensions fields.
- *
- * @see physical_field_info()
+ * Callback to alter the property info of Zoetrope UUID fields.
  */
 function zoetrope_viewer_uuid_field_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
   $name = $field['field_name'];
@@ -155,6 +153,7 @@ function zoetrope_viewer_uuid_field_field_data_auto_creation() {
  */
 function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
   return array(
+    // Real, stored data tokens
     'zoetrope_uuid' => array(
       'label' => t('Zoetrope ID'),
       'description' => t('The Zoetrope ID for the image.'),
@@ -172,11 +171,51 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
     'gallery_image_positions' => array(
       'label' => t('Gallery Image Positions'),
       'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios.'),
-      'type' => 'struct',
+      'type' => 'list<struct>',
       'getter callback' => 'entity_property_verbatim_get',
       'setter callback' => 'entity_property_verbatim_set',
+      'property info' => array(
+        // These properties are not being correctly exposed as tokens.
+        'weight' => array(
+          'label' => t('Gallery image position weight'),
+          'description' => t('the priority/weight of this gallery image position'),
+          'type' => 'int',
+          'getter callback' => 'entity_property_verbatim_get',
+          'setter callback' => 'entity_property_verbatim_set',
+        ),
+        'position' => array(
+          'label' => t('Gallery image position'),
+          'description' => t('the position of this gallery image, in the style of \'start_position\''),
+          'type' => 'int',
+          'getter callback' => 'entity_property_verbatim_get',
+          'setter callback' => 'entity_property_verbatim_set',
+        ),
+        'gallery_preview_url' => array(
+          'label' => t('Preview Image URI'),
+          'description' => t('URI to preview image.'),
+          'type' => 'uri',
+          'getter callback' => 'entity_metadata_zoetrope_viewer_get_properties',
+        )
+      ),
     ),
+
+    // Dynamic properties
+    'preview_url' => array(
+      'label' => t('Preview Image URI'),
+      'description' => t('URI to preview image.'),
+      'type' => 'uri',
+      'getter callback' => 'entity_metadata_zoetrope_viewer_get_properties',
+    )
   );
+}
+
+function entity_metadata_zoetrope_viewer_get_properties($data, array $options, $name, $entity_type) {
+  switch ($name) {
+    case 'preview_url':
+      return _zoetrope_viewer_image_url($data['zoetrope_uuid'], 1000, $data['start_position']);
+
+    // TODO: add gallery_preview_url tokens.
+  }
 }
 
 /**
@@ -734,59 +773,6 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   }
 
   return $e;
-}
-
-/**
- * Implements hook_token_info_alter().
- */
-function zoetrope_viewer_token_info_alter(&$info) {
-  $fields = field_info_fields();
-  // Attach field tokens to their respecitve entity tokens.
-  foreach ($fields as $field_name => $field) {
-
-    if ($field['type'] == 'zoetrope_uuid_field') {
-      foreach (array_keys($field['bundles']) as $token_type) {
-        $token_name = $field_name . '_preview_url';
-        $info['tokens'][$token_type][$token_name] = array(
-          'name' => t('@field Preview url', array('@field' => $field_name)),
-          'description' => t('The url of the preview jpg for an engage image'),
-          'module' => 'zoetrope_viewer',
-        );
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_tokens().
- */
-function zoetrope_viewer_tokens($type, $tokens, array $data = array(), array $options = array()) {
-  $replacements = array();
-  $sanitize = !empty($options['sanitize']);
-
-  if ($type == 'entity' && !empty($data['entity_type']) && !empty($data['entity']) && !empty($data['token_type'])) {
-
-    foreach ($tokens as $field_name_suffixed => $token) {
-
-      if (isset($tokens[$field_name_suffixed]) && _token_module($data['token_type'], $field_name_suffixed) == 'zoetrope_viewer') {
-
-        $field_name = str_replace('_preview_url', '', $field_name_suffixed);
-        $entity = $data['entity'];
-        $field_info = field_info_field($field_name);
-        if ($field_info['type'] != 'zoetrope_uuid_field' || empty($entity->{$field_name})) {
-          continue;
-        }
-        /*
-         * TODO: How to deal with multiple deltas?
-         */
-
-        $url = zoetrope_viewer_preview_image_url($entity->{$field_name}[LANGUAGE_NONE][0]['zoetrope_uuid']);
-        $replacements[$token] = $url;
-      }
-    }
-  }
-
-  return $replacements;
 }
 
 // Helper functions.
