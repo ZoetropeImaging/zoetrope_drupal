@@ -678,6 +678,8 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
  * Helper to make a renderable array.
  */
 function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE) {
+  global $language;
+
   $img_uuid = empty($item['zoetrope_uuid']) ? $item['value'] : $item['zoetrope_uuid'];
   $start_position = isset($item['start_position']) ? $item['start_position'] : 0;
 
@@ -695,8 +697,8 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-image' => $img_uuid,
       'data-zoe-site' => $site_uuid,
       'data-zoe-rel' => $rel,
-      'data-zoe-start-position' => $start_position
-      ,
+      'data-zoe-start-position' => $start_position,
+      'data-zoe-lang' => $language->language,
     ),
   );
 
