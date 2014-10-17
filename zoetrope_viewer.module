@@ -208,7 +208,9 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
   );
 }
 
-/** Callback to get entity dynamic entity properties. */
+/**
+ * Callback to get entity dynamic entity properties.
+ */
 function zoetrope_viewer_entity_metadata_get_properties($data, array $options, $name, $entity_type) {
   switch ($name) {
     case 'preview_url':
