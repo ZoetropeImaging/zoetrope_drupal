@@ -9,7 +9,7 @@
  */
 
 /**
- * This constant is the zoetrope CDN url, do not change here, there's a settings page to override it.
+ * This constant is the zoetrope CDN url, there's a settings page to override it.
  */
 const ZOETROPE_VIEWER_CDN = '//d34tuy4jppw3dn.cloudfront.net';
 
@@ -203,13 +203,13 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
       'label' => t('Preview Image URI'),
       'description' => t('URI to preview image.'),
       'type' => 'uri',
-      'getter callback' => 'entity_metadata_zoetrope_viewer_get_properties',
-    )
+      'getter callback' => 'zoetrope_viewer_entity_metadata_get_properties',
+    ),
   );
 }
 
-/* Callback to get entity dynamic entity properties. */
-function entity_metadata_zoetrope_viewer_get_properties($data, array $options, $name, $entity_type) {
+/** Callback to get entity dynamic entity properties. */
+function zoetrope_viewer_entity_metadata_get_properties($data, array $options, $name, $entity_type) {
   switch ($name) {
     case 'preview_url':
       return _zoetrope_viewer_image_url($data['zoetrope_uuid'], 1000, $data['start_position']);
@@ -221,7 +221,7 @@ function entity_metadata_zoetrope_viewer_get_properties($data, array $options, $
 /**
  * Implements hook_field_presave().
  *
- * gallery_image_positions needs to be serialized here
+ * Gallery_image_positions needs to be serialized here.
  */
 function zoetrope_viewer_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   foreach ($items as & $item) {
