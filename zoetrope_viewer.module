@@ -11,7 +11,7 @@
 /**
  * This constant is the zoetrope CDN url, there's a settings page to override it.
  */
-const ZOETROPE_VIEWER_CDN = '//d34tuy4jppw3dn.cloudfront.net';
+define('ZOETROPE_VIEWER_CDN', '//d34tuy4jppw3dn.cloudfront.net');
 
 /**
  * Implements hook_permission().
@@ -46,9 +46,8 @@ function zoetrope_viewer_settings_form($form, &$form_state) {
   $form['custom_cdn'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use custom CDN'),
-    '#description' => t('Normally your images will be hosted by Zoetrope, we will tell you if you need this.'
-    ),
-    '#default_value' => (variable_get('zoetrope_viewer:cdn', FALSE)) ? 1 : 0,
+    '#description' => t('Normally your images will be hosted by Zoetrope, we will tell you if you need this.'),
+    '#default_value' => (variable_get('zoetrope_viewer:cdn', FALSE) ? 1 : 0),
   );
 
   $form['cdn_url'] = array(
@@ -210,13 +209,13 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
 
 /**
  * Callback to get entity dynamic entity properties.
+ *
+ * @todo Add gallery_preview_url tokens.
  */
 function zoetrope_viewer_entity_metadata_get_properties($data, array $options, $name, $entity_type) {
   switch ($name) {
     case 'preview_url':
       return _zoetrope_viewer_image_url($data['zoetrope_uuid'], 1000, $data['start_position']);
-
-    // TODO: add gallery_preview_url tokens.
   }
 }
 
@@ -248,6 +247,8 @@ function zoetrope_viewer_field_load($entity_type, $entities, $field, $instances,
 
 /**
  * Implements hook_field_validate().
+ *
+ * @todo Add validation of gallery_image_positions.
  */
 function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   foreach ($items as $delta => $item) {
@@ -270,8 +271,6 @@ function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance
         }
       }
     }
-
-    // TODO: add validation of gallery_image_positions
   }
 }
 
