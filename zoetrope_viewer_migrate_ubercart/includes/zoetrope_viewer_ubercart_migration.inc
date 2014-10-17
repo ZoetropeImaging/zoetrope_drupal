@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Zoetrope image migration for importing in to ubercart
+ * Zoetrope image migration for importing in to ubercart.
  */
 
 class ZoetropeViewerUbercartMigration extends Migration {
@@ -64,7 +64,7 @@ class ZoetropeViewerUbercartMigration extends Migration {
       'sku' => 'product SKU',
       'zoetrope_uuid' => 'the UUID of the Zoetrope image being imported',
       'zoetrope_start_position' => 'The initial position of this Zoetrope image',
-      'zoetrope_gallery_image_positions' => 'the gallery image indicies of this image',
+      'zoetrope_gallery_image_positions' => 'the gallery image indices of this image',
     );
   }
 

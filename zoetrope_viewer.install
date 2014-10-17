@@ -70,7 +70,7 @@ function zoetrope_viewer_get_zoetrope_fields() {
 function zoetrope_viewer_update_7001() {
 
   $col = 'gallery_image_positions';
-  $field_spec = zoetrope_viewer_field_schema($field)['columns'][$col];
+  $field_spec = zoetrope_viewer_field_schema()['columns'][$col];
 
   $fields = zoetrope_viewer_get_zoetrope_fields();
   foreach ($fields as $field) {

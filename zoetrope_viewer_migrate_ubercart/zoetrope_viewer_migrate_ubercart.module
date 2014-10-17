@@ -61,15 +61,15 @@ function zoetrope_viewer_migrate_ubercart_settings_form($form, $form_state) {
   }
 
   $form['zoetrope_viewer_migrate_ubercart:dest_field'] = array(
-    '#title' => 'Zoetrope Field to import to',
-    '#description' => 'Normally you would only have one image per product field',
+    '#title' => t('Zoetrope Field to import to.'),
+    '#description' => t('Normally you would only have one image per product field.'),
     '#type' => 'select',
     '#options' => $options,
     '#default_value' => NULL,
   );
 
   if (count($options) == 0) {
-    drupal_set_message('You need to add a `zoetrope_image` field to a ubercart_product type before importing', 'error');
+    drupal_set_message(t('You need to add a `zoetrope_image` field to a ubercart_product type before importing.'), 'error');
     $form['zoetrope_viewer_migrate_ubercart:dest_field']['#disabled'] = TRUE;
   }
 

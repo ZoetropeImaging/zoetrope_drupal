@@ -9,8 +9,7 @@
  */
 
 /**
- * This constant is the zoetrope CDN url, do not change here, there's a
- * settings page to override it.
+ * This constant is the zoetrope CDN url, do not change here, there's a settings page to override it.
  */
 const ZOETROPE_VIEWER_CDN = '//d34tuy4jppw3dn.cloudfront.net';
 
@@ -153,7 +152,7 @@ function zoetrope_viewer_uuid_field_field_data_auto_creation() {
  */
 function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
   return array(
-    // Real, stored data tokens
+    // Real, stored data tokens.
     'zoetrope_uuid' => array(
       'label' => t('Zoetrope ID'),
       'description' => t('The Zoetrope ID for the image.'),
@@ -185,7 +184,7 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
         ),
         'position' => array(
           'label' => t('Gallery image position'),
-          'description' => t('the position of this gallery image, in the style of \'start_position\''),
+          'description' => t("the position of this gallery image, in the style of 'start_position'"),
           'type' => 'int',
           'getter callback' => 'entity_property_verbatim_get',
           'setter callback' => 'entity_property_verbatim_set',
@@ -195,11 +194,11 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
           'description' => t('URI to preview image.'),
           'type' => 'uri',
           'getter callback' => 'entity_metadata_zoetrope_viewer_get_properties',
-        )
+        ),
       ),
     ),
 
-    // Dynamic properties
+    // Dynamic properties.
     'preview_url' => array(
       'label' => t('Preview Image URI'),
       'description' => t('URI to preview image.'),
@@ -209,6 +208,7 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
   );
 }
 
+/* Callback to get entity dynamic entity properties. */
 function entity_metadata_zoetrope_viewer_get_properties($data, array $options, $name, $entity_type) {
   switch ($name) {
     case 'preview_url':
@@ -250,14 +250,12 @@ function zoetrope_viewer_field_load($entity_type, $entities, $field, $instances,
 function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   foreach ($items as $delta => $item) {
     if (!empty($item['zoetrope_uuid'])) {
-      $uuid_valid = TRUE;
       // Test for valid UUID (mongo ObjectID style UUID).
       if (!preg_match("/^[0-9a-fA-F]{24}$/", $item['zoetrope_uuid'])) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
           'error' => 'zoetrope_uuid_field_uuid_invalid',
           'message' => t('Zoetrope ID field must be a valid UUID.'),
         );
-        $uuid_valid = FALSE;
       }
 
       if (!empty($item['start_position'])) {
@@ -602,7 +600,6 @@ function zoetrope_viewer_field_formatter_settings_summary($field, $instance, $vi
 function zoetrope_viewer_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
 
   foreach ($entities as $id => $entity) {
-    $instance = $instances[$id];
     $display = $displays[$id];
     // If it's a zoetrope_image_gallery display.
     if ($display['type'] == 'zoetrope_image_gallery' && !empty($display['settings']['zoetrope_uuid_field_name'])) {
@@ -640,7 +637,8 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
 
   $element = array();
   $settings = $display['settings'];
-  $zoe_cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
+
+  // Always get viewer from zoetrope.
   drupal_add_js(ZOETROPE_VIEWER_CDN . '/v3/js/zoetrope.jquery.js', array(
       'type' => 'external',
       'group' => JS_THEME,
@@ -776,8 +774,6 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
 
   return $e;
 }
-
-// Helper functions.
 
 /**
  * Returns a preview image URL from the CDN.
