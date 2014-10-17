@@ -11,12 +11,12 @@
 function zoetrope_viewer_migrate_api() {
   $api = array(
     'api' => 2,
-    'field handlers' => array('ZoetropeUUIDFieldHandler'),
+    'field handlers' => array('ZoetropeViewerUUIDFieldHandler'),
   );
   return $api;
 }
 
-class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
+class ZoetropeViewerUUIDFieldHandler extends MigrateFieldHandler {
 
   /**
    * Tell migrate what fields we can handle.
@@ -64,7 +64,6 @@ class ZoetropeUUIDFieldHandler extends MigrateFieldHandler {
     }
 
     $migration = Migration::currentMigration();
-    $destination = $migration->getDestination();
 
     // Setup the standard Field API array for saving.
     $delta = 0;
