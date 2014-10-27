@@ -17,18 +17,20 @@ function zoetrope_viewer_field_schema($field) {
       'type' => 'varchar',
       'length' => 36,
       'not null' => FALSE,
+      'description' => "The image's Zoetrope ID."
     ),
     'start_position' => array(
       'type' => 'numeric',
       'size' => 'normal',
       'default' => 0,
       'not null' => FALSE,
+      'description' => 'The image starting position.'
     ),
     'gallery_image_positions' => array(
       'type' => 'varchar',
       'length' => 10000,
       'serialize' => TRUE,
-      'description' => t('Holds information about the positions and priorities of images to be used for 2D gallery scenarios'),
+      'description' => 'Holds information about the positions and priorities of images to be used for 2D gallery scenarios.',
     ),
   );
   $indexes = array(
@@ -46,7 +48,7 @@ function zoetrope_viewer_field_schema($field) {
 function zoetrope_viewer_uninstall() {
   $vars = array('site_uuid', 'cdn');
   foreach ($vars as $var) {
-    variable_delete('zoetrope_viewer:' . $var);
+    variable_del('zoetrope_viewer:' . $var);
   }
 }
 
