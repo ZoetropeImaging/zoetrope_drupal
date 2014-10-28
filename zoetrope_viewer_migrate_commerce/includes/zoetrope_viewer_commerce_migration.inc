@@ -5,6 +5,9 @@
  * Zoetrope image migration for importing in to commerce.
  */
 
+/**
+ * Imports Zoetrope Feeds into a field on drupal commerce inventories.
+ */
 class ZoetropeViewerCommerceMigration extends Migration {
 
   /**

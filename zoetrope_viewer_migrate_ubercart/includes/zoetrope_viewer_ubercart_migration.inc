@@ -5,6 +5,9 @@
  * Zoetrope image migration for importing in to ubercart.
  */
 
+/**
+ * Imports Zoetrope Feeds into a field on drupal commerce inventories.
+ */
 class ZoetropeViewerUbercartMigration extends Migration {
 
   /**

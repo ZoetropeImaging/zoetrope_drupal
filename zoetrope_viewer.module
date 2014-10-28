@@ -47,14 +47,14 @@ function zoetrope_viewer_settings_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Use custom CDN'),
     '#description' => t('Normally your images will be hosted by Zoetrope. Leave blank unless instructed.'),
-    '#default_value' => (variable_get('zoetrope_viewer:cdn', FALSE) ? 1 : 0),
+    '#default_value' => (variable_get('zoetrope_viewer_cdn', FALSE) ? 1 : 0),
   );
 
   $form['cdn_url'] = array(
     '#type' => 'textfield',
     '#title' => t('base URL'),
     '#description' => t('The CDN url with no http:// or https://'),
-    '#default_value' => variable_get('zoetrope_viewer:cdn', FALSE),
+    '#default_value' => variable_get('zoetrope_viewer_cdn', FALSE),
     '#states' => array(
       'visible' => array(
         ':input[name="custom_cdn"]' => array('checked' => TRUE),
@@ -683,7 +683,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   $img_uuid = empty($item['zoetrope_uuid']) ? $item['value'] : $item['zoetrope_uuid'];
   $start_position = isset($item['start_position']) ? $item['start_position'] : 0;
 
-  $site_uuid = variable_get('zoetrope_viewer:site_uuid', '');
+  $site_uuid = variable_get('zoetrope_viewer_site_uuid', '');
 
   // Override sites default CDN (done by modules sometimes).
   $cdn = !empty($settings['cdn']) ? $settings['cdn'] : FALSE;
@@ -805,7 +805,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
 function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = FALSE) {
   $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
   if ($cdn == FALSE) {
-    $cdn = variable_get('zoetrope_viewer:cdn', ZOETROPE_VIEWER_CDN);
+    $cdn = variable_get('zoetrope_viewer_cdn', ZOETROPE_VIEWER_CDN);
   }
   if (!in_array($size, array(250, 500, 1000))) {
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.',

@@ -88,3 +88,18 @@ function zoetrope_viewer_update_7001() {
     }
   }
 }
+
+/**
+ * Upgrade to rename persistant variables inline with coding standards.
+ *
+ * Replaces ':' with '_' in all variable names.
+ */
+function zoetrope_viewer_update_7002(){
+  $vars = array('site_uuid', 'cdn');
+  foreach ($vars as $var) {
+    $value = variable_get('zoetrope_viewer:' . $var, FALSE);
+    if (!empty($value)) {
+      variable_set('zoetrope_viewer_' . $var, $value);
+    }
+  }
+}

@@ -7,9 +7,6 @@
 
 /**
  * Implements hook_migrate_api().
- *
- * You must implement hook_migrate_api(), setting the API level to 2, for
- * your migration classes to be recognized by the Migrate module.
  */
 function zoetrope_viewer_migrate_ubercart_migrate_api() {
   $api = array(
@@ -41,12 +38,12 @@ function zoetrope_viewer_migrate_ubercart_menu() {
 function zoetrope_viewer_migrate_ubercart_settings_form($form, $form_state) {
 
   // The Feed URL which will be used to populate the field.
-  $form['zoetrope_viewer_migrate_ubercart:source_url'] = array(
+  $form['zoetrope_viewer_migrate_ubercart_source_url'] = array(
     '#title' => 'Zoetrope Feed URL',
     '#decription' => 'The feed url can be fetched from your Zoetrope user area, by logging in and going ' .
     'to http://zoetrope.io/user, then clicking on "feeds". Select a drupal feed type and paste it here.',
     '#type' => 'textfield',
-    '#default_value' => variable_get('zoetrope_viewer_migrate_ubercart:source_url', ''),
+    '#default_value' => variable_get('zoetrope_viewer_migrate_ubercart_source_url', ''),
     '#max_length' => 500,
   );
 
@@ -60,12 +57,12 @@ function zoetrope_viewer_migrate_ubercart_settings_form($form, $form_state) {
     }
   }
 
-  $form['zoetrope_viewer_migrate_ubercart:dest_field'] = array(
+  $form['zoetrope_viewer_migrate_ubercart_dest_field'] = array(
     '#title' => t('Zoetrope Field to import to.'),
     '#description' => t('Normally you would only have one image per product field.'),
     '#type' => 'select',
     '#options' => $options,
-    '#default_value' => NULL,
+    '#default_value' => variable_get('zoetrope_viewer_migrate_ubercart_dest_field', NULL),
   );
 
   if (count($options) == 0) {
