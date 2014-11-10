@@ -89,12 +89,12 @@ function zoetrope_viewer_settings_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   if ($values['custom_cdn']) {
     $zoe_cdn = $values['cdn_url'];
+    variable_set('zoetrope_viewer_cdn', $zoe_cdn);
   }
   else {
     // Use default zoetrope CDN.
-    $zoe_cdn = FALSE;
+    variable_del('zoetrope_viewer_cdn');
   }
-  variable_set('zoetrope_viewer:cdn', $zoe_cdn);
 }
 
 /**
@@ -688,6 +688,11 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   // Override sites default CDN (done by modules sometimes).
   $cdn = !empty($settings['cdn']) ? $settings['cdn'] : FALSE;
   $cdn = !empty($item['cdn']) ? $item['cdn'] : $cdn;
+
+  // get the $cdn if required
+  if ($cdn == FALSE) {
+    $cdn = variable_get('zoetrope_viewer_cdn', FALSE);
+  }
   $preview_path = _zoetrope_viewer_image_url($img_uuid, 500, $start_position, $cdn);
 
   $e = array(
@@ -794,6 +799,21 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
 }
 
 /**
+ * Returns a CDN base URL, in the right format
+ *
+ * @param string $cdn CDN override, defaults false to use global setting
+ *                    in `zoetrope_viewer_cdn`.
+ * @return string Base URL for the CDN.
+ */
+function _zoetrope_viewer_cdn_url($cdn = FALSE){
+  $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
+  if ($cdn == FALSE) {
+    $cdn = variable_get('zoetrope_viewer_cdn', ZOETROPE_VIEWER_CDN);
+  }
+  return $mode . $cdn;
+}
+
+/**
  * Returns a preview image URL from the CDN.
  *
  * @param string $uuid The Zoetrope image UUID.
@@ -803,16 +823,13 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
  * @return string A fully formed image URL.
  */
 function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = FALSE) {
-  $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
-  if ($cdn == FALSE) {
-    $cdn = variable_get('zoetrope_viewer_cdn', ZOETROPE_VIEWER_CDN);
-  }
+  $cdn = _zoetrope_viewer_cdn_url($cdn);
   if (!in_array($size, array(250, 500, 1000))) {
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.',
       array('@size' => $size), WATCHDOG_ERROR
     );
   }
-  return $mode . $cdn . '/' . $uuid . '/' . $size . '/' . $position . '.jpg';
+  return $cdn . '/' . $uuid . '/' . $size . '/' . $position . '.jpg';
 }
 
 /**
