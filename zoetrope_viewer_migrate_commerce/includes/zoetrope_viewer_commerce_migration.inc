@@ -19,14 +19,14 @@ class ZoetropeViewerCommerceMigration extends Migration {
     $this->description = t('Import Zoetrope image to your commerce site, keyed on SKU, from your Zoetrope image feed.');
 
     // Create a MigrateSource object, which manages retrieving the input data.
-    $source_file = variable_get('zoetrope_viewer_migrate_commerce:source_url', FALSE);
+    $source_file = variable_get('zoetrope_viewer_migrate_commerce_source_url', FALSE);
     if (!$source_file) {
       throw new MigrateException(t('You need to set your import url for Zoetrope images on the @link',
           array('@link' => l(t('settings page'), 'admin/content/zoetrope_commerce'))));
     }
 
     // Get the configured destination field.
-    $this->destination_field = variable_get('zoetrope_viewer_migrate_commerce:dest_field', FALSE);
+    $this->destination_field = variable_get('zoetrope_viewer_migrate_commerce_dest_field', FALSE);
     if (!$this->destination_field) {
       throw new MigrateException(t('You need to set up a field to import to your Zoetrope images to on the @link',
           array('@link' => l(t('settings page'), 'admin/content/zoetrope_commerce'))));
