@@ -629,7 +629,9 @@ function zoetrope_viewer_field_formatter_prepare_view($entity_type, $entities, $
         $e_items = &$items[$id];
         // Match up image field deltas with zoetrope image deltas.
         foreach ($e_items as $delta => & $value) {
-          $value['trigger_image'] = $image_field[$delta];
+          if(!empty($image_field[$delta])){
+            $value['trigger_image'] = $image_field[$delta];
+          }
         }
       }
     }
