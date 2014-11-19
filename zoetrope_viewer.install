@@ -48,7 +48,7 @@ function zoetrope_viewer_field_schema($field) {
 function zoetrope_viewer_uninstall() {
   $vars = array('site_uuid', 'cdn');
   foreach ($vars as $var) {
-    variable_del('zoetrope_viewer:' . $var);
+    variable_del('zoetrope_viewer_' . $var);
   }
 }
 

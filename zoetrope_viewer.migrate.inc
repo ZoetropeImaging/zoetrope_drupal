@@ -23,7 +23,7 @@ function zoetrope_viewer_migrate_api() {
 class ZoetropeViewerUUIDFieldHandler extends MigrateFieldHandler {
 
   /**
-   * Class initialization.
+   * {@inheritdoc}
    */
   public function __construct() {
     // Tell migrate what fields we can handle.
@@ -31,7 +31,7 @@ class ZoetropeViewerUUIDFieldHandler extends MigrateFieldHandler {
   }
 
   /**
-   * Implementation of MigrateFieldHandler::arguments().
+   * {@inheritdoc}
    */
   public function arguments($zoetrope_uuid = NULL, $start_position = NULL) {
     $arguments = array();
@@ -45,7 +45,7 @@ class ZoetropeViewerUUIDFieldHandler extends MigrateFieldHandler {
   }
 
   /**
-   * Implementation of MigrateFieldHandler::fields().
+   * {@inheritdoc}
    */
   public function fields($type, $instance, $migration = NULL) {
     $fields = array();
@@ -57,7 +57,7 @@ class ZoetropeViewerUUIDFieldHandler extends MigrateFieldHandler {
   }
 
   /**
-   * Implementation of MigrateFieldHandler::prepare().
+   * {@inheritdoc}
    */
   public function prepare($entity, array $field_info, array $instance, array $values) {
     if (isset($values['arguments'])) {
@@ -112,8 +112,11 @@ class ZoetropeViewerUUIDFieldHandler extends MigrateFieldHandler {
  * This a security function which prevents any malformed or malicous code being
  * inserted via the `gallery_image` object.
  *
- * @param array $list an array containing the imported JSON.
- * @return array The sanitised list.
+ * @param array $list
+ *   an array containing the imported JSON.
+ *
+ * @return array
+ *   The sanitised list.
  */
 function _zoetrope_viewer_gallery_image_helper($list) {
   $ret = array();

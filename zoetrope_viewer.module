@@ -39,7 +39,7 @@ function zoetrope_viewer_menu() {
 }
 
 /**
- * Implements hook_form().
+ * Global settings form for Zoetrope Viewer.
  */
 function zoetrope_viewer_settings_form($form, &$form_state) {
 
@@ -215,6 +215,7 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
  * Callback to get entity dynamic entity properties.
  *
  * @todo Add gallery_preview_url tokens.
+ *
  * @see zoetrope_viewer_uuid_field_field_data_property_info()
  */
 function zoetrope_viewer_entity_metadata_get_properties($data, array $options, $name, $entity_type) {
@@ -674,10 +675,15 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
 /**
  * Helper to make a renderable array.
  *
- * @param array $item The item being rendered.
- * @param array $settings The field settings.
- * @param array $rel A grouping variable for multiple Zoetropes.
- * @return array A renderable array.
+ * @param array $item
+ *   The item being rendered.
+ * @param array $settings
+ *   The field settings.
+ * @param array $rel
+ *   A grouping variable for multiple Zoetropes.
+ *
+ * @return array
+ *   A renderable array.
  */
 function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE) {
   global $language;
@@ -803,8 +809,10 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
 /**
  * Returns a CDN base URL, in the right format
  *
- * @param string $cdn CDN override, defaults false to use global setting
- *                    in `zoetrope_viewer_cdn`.
+ * @param string $cdn
+ *   CDN override, defaults false to use global setting
+ *   in `zoetrope_viewer_cdn`.
+ *
  * @return string Base URL for the CDN.
  */
 function _zoetrope_viewer_cdn_url($cdn = FALSE){
@@ -818,11 +826,17 @@ function _zoetrope_viewer_cdn_url($cdn = FALSE){
 /**
  * Returns a preview image URL from the CDN.
  *
- * @param string $uuid The Zoetrope image UUID.
- * @param int $size The image size, can be either 250,500,1000.
- * @param int $position The position between 0-107.
- * @param string $cdn The base CDN, if not using the site default CDN.
- * @return string A fully formed image URL.
+ * @param string $uuid
+ *   The Zoetrope image UUID.
+ * @param int $size
+ *   The image size, can be either 250,500,1000.
+ * @param int $position
+ *   The position between 0-107.
+ * @param string $cdn
+ *   The base CDN, if not using the site default CDN.
+ *
+ * @return string
+ *   A fully formed image URL.
  */
 function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = FALSE) {
   $cdn = _zoetrope_viewer_cdn_url($cdn);
@@ -837,10 +851,15 @@ function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = FA
 /**
  * Shortcut for `_zoetrope_viewer_image_url($uuid, 500, 0)`.
  *
- * @see _zoetrope_viewer_image_url
- * @param int $size The image size, can be either 250,500,1000.
- * @param int $position The position between 0-107.
- * @return string A fully formed image URL.
+ * @param int $size
+ *   The image size, can be either 250,500,1000.
+ * @param int $position
+ *   The position between 0-107.
+ *
+ * @return string
+ *   A fully formed image URL.
+ *
+ * @see _zoetrope_viewer_image_url()
  */
 function zoetrope_viewer_preview_image_url($uuid, $cdn = FALSE) {
   return _zoetrope_viewer_image_url($uuid, 500, 0, $cdn);
@@ -849,10 +868,15 @@ function zoetrope_viewer_preview_image_url($uuid, $cdn = FALSE) {
 /**
  * Shortcut for `_zoetrope_viewer_image_url($uuid, 1000, 0)`.
  *
- * @see _zoetrope_viewer_image_url
- * @param int $size The image size, can be either 250,500,1000.
- * @param int $position The position between 0-107.
- * @return string A fully formed image URL.
+ * @param int $size
+ *   The image size, can be either 250,500,1000.
+ * @param int $position
+ *   The position between 0-107.
+ *
+ * @return string
+ *   A fully formed image URL.
+ *
+ * @see _zoetrope_viewer_image_url()
  */
 function zoetrope_viewer_large_image_url($uuid, $cdn = FALSE) {
   return _zoetrope_viewer_image_url($uuid, 1000, 0, $cdn);
