@@ -34,40 +34,9 @@ function zoetrope_viewer_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('zoetrope_viewer_settings_form'),
     'access arguments' => array('administer zoetrope viewer'),
+    'file' => 'zoetrope_viewer.admin.inc'
   );
   return $menu;
-}
-
-/**
- * Global settings form for Zoetrope Viewer.
- */
-function zoetrope_viewer_settings_form($form, &$form_state) {
-
-  $form['custom_cdn'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Use custom CDN'),
-    '#description' => t('Normally your images will be hosted by Zoetrope. Leave blank unless instructed.'),
-    '#default_value' => (variable_get('zoetrope_viewer_cdn', FALSE) ? 1 : 0),
-  );
-
-  $form['cdn_url'] = array(
-    '#type' => 'textfield',
-    '#title' => t('base URL'),
-    '#description' => t('The CDN url with no http:// or https://'),
-    '#default_value' => variable_get('zoetrope_viewer_cdn', FALSE),
-    '#states' => array(
-      'visible' => array(
-        ':input[name="custom_cdn"]' => array('checked' => TRUE),
-      ),
-    ),
-  );
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
-
-  return $form;
 }
 
 /**
@@ -75,25 +44,10 @@ function zoetrope_viewer_settings_form($form, &$form_state) {
  */
 function zoetrope_viewer_settings_form_validate($form, &$form_state) {
   $values = $form_state['values'];
-  if ($values['custom_cdn']) {
-    if (!valid_url($values['cdn_url'])) {
-      form_set_error('cdn_url', t('The CDN url does not appear to be a valid url.'));
+  if ($values['zoetrope_viewer_cdn_enable']) {
+    if (!valid_url($values['zoetrope_viewer_cdn'])) {
+      form_set_error('zoetrope_viewer_cdn', t('The CDN url does not appear to be a valid url.'));
     }
-  }
-}
-
-/**
- * Handle zoetrope_viewer_settings_form submissions.
- */
-function zoetrope_viewer_settings_form_submit($form, &$form_state) {
-  $values = $form_state['values'];
-  if ($values['custom_cdn']) {
-    $zoe_cdn = $values['cdn_url'];
-    variable_set('zoetrope_viewer_cdn', $zoe_cdn);
-  }
-  else {
-    // Use default zoetrope CDN.
-    variable_del('zoetrope_viewer_cdn');
   }
 }
 
@@ -260,7 +214,7 @@ function zoetrope_viewer_field_validate($entity_type, $entity, $field, $instance
   foreach ($items as $delta => $item) {
     if (!empty($item['zoetrope_uuid'])) {
       // Test for valid UUID (mongo ObjectID style UUID).
-      if (!preg_match("/^[0-9a-fA-F]{24}$/", $item['zoetrope_uuid'])) {
+      if (!preg_match('/^[0-9a-fA-F]{24}$/', $item['zoetrope_uuid'])) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
           'error' => 'zoetrope_uuid_field_uuid_invalid',
           'message' => t('Zoetrope ID field must be a valid UUID.'),
@@ -564,7 +518,7 @@ function zoetrope_viewer_field_formatter_settings_summary($field, $instance, $vi
     case 'zoetrope_engage_image':
       $summary[] = $settings['inline_image'] ? t('Inline (no overlay)') : t('Show in Overlay');
       $summary[] = $settings['force_mini'] ? t('Mini Viewer') : t('Responsive Viewer');
-      $summary[] = $settings['trigger_image'] ? t("Using field `@field` for the trigger image",
+      $summary[] = $settings['trigger_image'] ? t('Using field `@field` for the trigger image',
         array('@field' => $settings['trigger_image'])
       ) : t('Zoetrope trigger image.');
       $image_styles = image_style_options(FALSE, PASS_THROUGH);
@@ -697,10 +651,6 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
   $cdn = !empty($settings['cdn']) ? $settings['cdn'] : FALSE;
   $cdn = !empty($item['cdn']) ? $item['cdn'] : $cdn;
 
-  // get the $cdn if required
-  if ($cdn == FALSE) {
-    $cdn = variable_get('zoetrope_viewer_cdn', FALSE);
-  }
   $preview_path = _zoetrope_viewer_image_url($img_uuid, 500, $start_position, $cdn);
 
   $e = array(
@@ -817,8 +767,12 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
  */
 function _zoetrope_viewer_cdn_url($cdn = FALSE){
   $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
-  if ($cdn == FALSE) {
+  $cdn_enable = variable_get('zoetrope_viewer_cdn_enable');
+  if ($cdn == FALSE && $cdn_enable) {
     $cdn = variable_get('zoetrope_viewer_cdn', ZOETROPE_VIEWER_CDN);
+  }
+  else{
+    $cdn = ZOETROPE_VIEWER_CDN;
   }
   return $mode . $cdn;
 }

@@ -46,7 +46,7 @@ function zoetrope_viewer_field_schema($field) {
  * Implements hook_uninstall().
  */
 function zoetrope_viewer_uninstall() {
-  $vars = array('site_uuid', 'cdn');
+  $vars = array('site_uuid', 'cdn', 'cdn_enable');
   foreach ($vars as $var) {
     variable_del('zoetrope_viewer_' . $var);
   }
@@ -101,6 +101,7 @@ function zoetrope_viewer_update_7002(){
     $value = variable_get('zoetrope_viewer:' . $var, FALSE);
     if (!empty($value)) {
       variable_set('zoetrope_viewer_' . $var, $value);
+      variable_delete('zoetrope_viewer:'.$var);
     }
   }
 }
