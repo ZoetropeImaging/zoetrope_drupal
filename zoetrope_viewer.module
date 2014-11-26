@@ -633,7 +633,7 @@ function zoetrope_viewer_field_formatter_view($entity_type, $entity, $field, $in
  *   The item being rendered.
  * @param array $settings
  *   The field settings.
- * @param array $rel
+ * @param mixed $rel
  *   A grouping variable for multiple Zoetropes.
  *
  * @return array
@@ -765,10 +765,10 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
  *
  * @return string Base URL for the CDN.
  */
-function _zoetrope_viewer_cdn_url($cdn = FALSE){
+function _zoetrope_viewer_cdn_url($cdn = ""){
   $mode = !empty($_SERVER['HTTPS']) ? 'https:' : 'http:';
   $cdn_enable = variable_get('zoetrope_viewer_cdn_enable');
-  if ($cdn == FALSE && $cdn_enable) {
+  if ($cdn == "" && $cdn_enable) {
     $cdn = variable_get('zoetrope_viewer_cdn', ZOETROPE_VIEWER_CDN);
   }
   else{
@@ -792,7 +792,7 @@ function _zoetrope_viewer_cdn_url($cdn = FALSE){
  * @return string
  *   A fully formed image URL.
  */
-function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = FALSE) {
+function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = "") {
   $cdn = _zoetrope_viewer_cdn_url($cdn);
   if (!in_array($size, array(250, 500, 1000))) {
     watchdog('Zoetrope Viewer', 'Invalid image size `@size` selected for preview, should have been 250,500 or 1000.',
@@ -803,35 +803,35 @@ function _zoetrope_viewer_image_url($uuid, $size = 500, $position = 0, $cdn = FA
 }
 
 /**
- * Shortcut for `_zoetrope_viewer_image_url($uuid, 500, 0)`.
+ * Shortcut for `_zoetrope_viewer_image_url($uuid, 500, $start_position, $cdn)`.
  *
- * @param int $size
- *   The image size, can be either 250,500,1000.
- * @param int $position
- *   The position between 0-107.
+ * @param object $field
+ *   The zoetrope field to retrieve an image for.
+ * @param string $cdn
+ *   String CDN override.
  *
  * @return string
  *   A fully formed image URL.
  *
  * @see _zoetrope_viewer_image_url()
  */
-function zoetrope_viewer_preview_image_url($uuid, $cdn = FALSE) {
-  return _zoetrope_viewer_image_url($uuid, 500, 0, $cdn);
+function zoetrope_viewer_preview_image_url($field, $cdn = "") {
+  return _zoetrope_viewer_image_url($field['zoetrope_uuid'], 500, $field['start_position'], $cdn);
 }
 
 /**
- * Shortcut for `_zoetrope_viewer_image_url($uuid, 1000, 0)`.
+ * Shortcut for `_zoetrope_viewer_image_url($uuid, 1000, $start_position, $cdn)`.
  *
- * @param int $size
- *   The image size, can be either 250,500,1000.
- * @param int $position
- *   The position between 0-107.
+ * @param object $field
+ *   The zoetrope field to retrieve an image for.
+ * @param string $cdn
+ *   String CDN override.
  *
  * @return string
  *   A fully formed image URL.
  *
  * @see _zoetrope_viewer_image_url()
  */
-function zoetrope_viewer_large_image_url($uuid, $cdn = FALSE) {
-  return _zoetrope_viewer_image_url($uuid, 1000, 0, $cdn);
+function zoetrope_viewer_large_image_url($field, $cdn = "") {
+  return _zoetrope_viewer_image_url($field['zoetrope_uuid'], 1000, $field['start_position'], $cdn);
 }
