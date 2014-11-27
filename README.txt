@@ -55,7 +55,8 @@ TOKENS
 The main use case for the tokens in this module is to use them in conjunction
 with the metatags module.
 
-Provided Tokens (replace node with any entity type, e.g. commerce_product, if you have an image on a commerce_product):
+Provided Tokens (replace node with any entity type, e.g. commerce_product,
+if you have an image on a commerce_product):
 *. `[node:field_name:preveiw_uri]` - The 1000px preview image url
 *. `[node:field_name:zoetrope_uuid]` - The Zoetrope UUID of the image
 *. `[node:field_name:starting_position]` - The index of the starting position

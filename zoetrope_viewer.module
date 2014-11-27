@@ -26,6 +26,21 @@ function zoetrope_viewer_permission() {
 }
 
 /**
+ * Implements hook_help().
+ *
+ * @todo Add more help.
+ */
+function zoetrope_viewer_help($path, $arg){
+  switch($path){
+    case 'admin/help#zoetrope_viewer':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Zoetrope Viewer module defines a Zoetrope field types for the Field module, as well as field display formatters to display Zoetrope 3D images in web pages.  See the <a href="@field-help">Field module help page</a> for more information about fields.', array('@field-help' => url('admin/help/field'))) . '</p>';
+      return $output;
+  }
+}
+
+/**
  * Implements hook_menu().
  */
 function zoetrope_viewer_menu() {
@@ -34,7 +49,7 @@ function zoetrope_viewer_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('zoetrope_viewer_settings_form'),
     'access arguments' => array('administer zoetrope viewer'),
-    'file' => 'zoetrope_viewer.admin.inc'
+    'file' => 'zoetrope_viewer.admin.inc',
   );
   return $menu;
 }
@@ -173,9 +188,8 @@ function zoetrope_viewer_uuid_field_field_data_property_info($name = NULL) {
  * @see zoetrope_viewer_uuid_field_field_data_property_info()
  */
 function zoetrope_viewer_entity_metadata_get_properties($data, array $options, $name, $entity_type) {
-  switch ($name) {
-    case 'preview_url':
-      return _zoetrope_viewer_image_url($data['zoetrope_uuid'], 1000, $data['start_position']);
+  if ($name == 'preview_url') {
+    return _zoetrope_viewer_image_url($data['zoetrope_uuid'], 1000, $data['start_position']);
   }
 }
 
@@ -584,7 +598,7 @@ function zoetrope_viewer_field_formatter_prepare_view($entity_type, $entities, $
         $e_items = &$items[$id];
         // Match up image field deltas with zoetrope image deltas.
         foreach ($e_items as $delta => & $value) {
-          if(!empty($image_field[$delta])){
+          if (!empty($image_field[$delta])) {
             $value['trigger_image'] = $image_field[$delta];
           }
         }

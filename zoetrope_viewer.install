@@ -17,14 +17,14 @@ function zoetrope_viewer_field_schema($field) {
       'type' => 'varchar',
       'length' => 36,
       'not null' => FALSE,
-      'description' => "The image's Zoetrope ID."
+      'description' => "The image's Zoetrope ID.",
     ),
     'start_position' => array(
       'type' => 'numeric',
       'size' => 'normal',
       'default' => 0,
       'not null' => FALSE,
-      'description' => 'The image starting position.'
+      'description' => 'The image starting position.',
     ),
     'gallery_image_positions' => array(
       'type' => 'varchar',
@@ -91,7 +91,7 @@ function zoetrope_viewer_update_7001() {
 }
 
 /**
- * Upgrade to rename persistant variables inline with coding standards.
+ * Upgrade to rename persistent variables inline with coding standards.
  *
  * Replaces ':' with '_' in all variable names.
  */
@@ -101,7 +101,7 @@ function zoetrope_viewer_update_7002(){
     $value = variable_get('zoetrope_viewer:' . $var, FALSE);
     if (!empty($value)) {
       variable_set('zoetrope_viewer_' . $var, $value);
-      variable_delete('zoetrope_viewer:'.$var);
+      variable_del('zoetrope_viewer:'.$var);
     }
   }
 }

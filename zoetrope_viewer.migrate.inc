@@ -118,7 +118,7 @@ class ZoetropeViewerUUIDFieldHandler extends MigrateFieldHandler {
  * @return array
  *   The sanitised list.
  */
-function _zoetrope_viewer_gallery_image_helper($list) {
+function _zoetrope_viewer_gallery_image_helper(array $list) {
   $ret = array();
   foreach ($list as $struct) {
     if (is_array($struct) && isset($struct['position']) && is_numeric($struct['position'])) {
