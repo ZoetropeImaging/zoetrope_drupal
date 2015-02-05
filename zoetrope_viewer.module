@@ -352,6 +352,7 @@ function zoetrope_viewer_field_formatter_info() {
         'autoload' => FALSE,
         'preload' => FALSE,
         'show-cta' => TRUE,
+        'gallery' => FALSE,
       ),
     ),
     'zoetrope_image_gallery' => array(
@@ -413,7 +414,7 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
         '#type' => 'checkbox',
         '#title' => t('Spin once on load'),
         '#description' => t('Spins one time when loaded.'),
-        '#default_value' => $settings['autospin'],
+        '#default_value' => $settings['loadspin'],
         '#states' => $states_non_2d,
       );
 
@@ -433,22 +434,21 @@ function zoetrope_viewer_field_formatter_settings_form($field, $instance, $view_
         '#states' => $states_non_2d,
       );
 
-      $element['autoload'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Instant load'),
-        '#description' => t('autoload on pageload.'),
-        '#default_value' => $settings['autoload'],
-        '#states' => $states_non_2d,
-      );
-
       $element['preload'] = array(
         '#type' => 'checkbox',
         '#title' => t('Preload'),
-        '#description' => t('Preload for extra responsiveness at the cost of server bandwidth'),
+        '#description' => t('Preload for extra responsiveness at the cost of server bandwidth. If loadspin is selected also, the image will rotate on page load.'),
         '#default_value' => $settings['preload'],
         '#states' => $states_non_2d,
       );
-      $element['preload']['#states']['visible'][':input[name="autoload"]'] = array('value' => FALSE);
+
+      $element['gallery'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show Gallery hotspots'),
+        '#description' => t('Show hotspots of selected views.'),
+        '#default_value' => $settings['gallery'],
+        '#states' => $states_non_2d,
+      );
 
       $fields_info = field_info_instances($instance['entity_type'], $instance['bundle']);
       $options = array();
@@ -658,6 +658,13 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
 
   $img_uuid = empty($item['zoetrope_uuid']) ? $item['value'] : $item['zoetrope_uuid'];
   $start_position = isset($item['start_position']) ? $item['start_position'] : 0;
+  $gallery_images = array();
+  if(isset($item['gallery_image_positions'])){
+    foreach ($item['gallery_image_positions'] as $value) {
+      array_push($gallery_images, $value['position']);
+    }
+  }
+
 
   $site_uuid = variable_get('zoetrope_viewer_site_uuid', '');
 
@@ -676,6 +683,7 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
       'data-zoe-rel' => $rel,
       'data-zoe-start-position' => $start_position,
       'data-zoe-lang' => $language->language,
+      'data-zoe-gallery-images' => drupal_json_encode($gallery_images),
     ),
   );
 
@@ -757,14 +765,13 @@ function _zoetrope_viewer_engage_image_field_view($item, $settings, $rel = FALSE
     $e['#attributes']['data-zoe-show-cta'] = 'true';
   }
 
-  // Autoload.
-  if (!empty($settings['autoload']) && $settings['autoload']) {
-    $e['#attributes']['data-zoe-autoload'] = 'true';
-  }
-
   // Preload.
   if (isset($settings['preload']) && !$settings['preload']) {
     $e['#attributes']['data-zoe-preload'] = 'false';
+  }
+
+  if (isset($settings['gallery']) && $settings['gallery']) {
+    $e['#attributes']['data-zoe-gallery'] = 'true';
   }
 
   return $e;
